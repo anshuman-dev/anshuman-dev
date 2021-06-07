@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>singhwebsite</title>
+</head>
+<body>
+    <section class="showcase"><!--all the styling-->
+        <header>
+            <h2 class="logo"> Welcome </h2>
+            <div class="toggle"></div><!--Type of menu making-->
+        </header>
+
+        <video src="space.mp4" autoplay loop muted></video>
+
+        <div class="overlay"></div><!--bright overlay over the video-->
+        <div class="text">
+            <h2>Believe in yourself</h2>
+            <h3>Making the world a better place</h3>
+        
+            <a href="#">See my portfolio</a>
+        </div>
+        <ul class="social">
+            <li><a href="https://github.com/anshuman-dev" target="_blank"><img alt="" src="github.png"></a></li>
+            <li><a href="https://gitlab.com/singhanshuman" target="_blank"><img alt="" src="gitlab.png"></a></li>
+            <li><a href="https://www.linkedin.com/in/anshuman-singh-4537731a5" target="_blank"><img alt="" src="linkedin.png"></a></li>
+        </ul>
+    </section>
+    <!--Now comes the menu, since the showcase section is all about styling the main page-->
+
+    <div class="menu">
+        <ul>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </div>
+
+<script>
+    const showcase = document.querySelector('.showcase')
+    const menuToggle = document.querySelector('.toggle')
+
+    menuToggle.addEventListener('click',()=>{
+        menuToggle.classList.toggle('active')
+        showcase.classList.toggle('active')
+    })
+</script>
+
+</body>
+</html>
