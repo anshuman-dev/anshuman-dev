@@ -23,8 +23,14 @@
     position:fixed;
     width:100%;
     padding: 15px 0;
+    /*background: #181d26;*/
+    font-family: 'Ubuntu', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.navbar.sticky{
+    padding: 15px 0;
     background: #181d26;
-    font-family: Ubuntu, sans-serif;
 }
 
 .navbar .max-width{
@@ -41,9 +47,8 @@
 
 }
 
-/*.navbar .logo a{
-THis one is left. no decision yet on logo color. consider changin text as well
-}*/
+/*.navbar .logo a span {} Left for now*/
+/*.navbar.sticky .logo a span{} Left for now*/
 
 .navbar .menu li{
     list-style:none;
@@ -55,15 +60,24 @@ THis one is left. no decision yet on logo color. consider changin text as well
     font-size: 18px;
     font-weight: 500;
     margin-left:25px;
+    transition: color 0.3s ease;
+
 
 }
 .navbar .menu li a:hover{
     color: crimson;
-    font-size: 18px;
-    font-weight: 500;
-    margin-left: 25px;
-    transition: color 0.3s ease;
+    
 }
+
+/*Menu btn not working*/
+.menu-btn{
+    color: #fff;
+    font-size: 23px;
+    cursor: pointer;
+    display: none;
+    
+}
+
 
 /* NOW WE DIVE INTO THE FRONT SCREEN CODE */
 .home{
@@ -75,7 +89,7 @@ THis one is left. no decision yet on logo color. consider changin text as well
     display: flex;
     color: white;
     min-height: 500px;
-    font-family: 'ubuntu', sans-serif;
+    font-family: 'Ubuntu', sans-serif;
 }
 
 .home .max-width{
@@ -101,6 +115,86 @@ THis one is left. no decision yet on logo color. consider changin text as well
 }
 
 
+/*Responsive part*/
+@media (max-width: 1104px){
+    .home .max-width{
+        margin-left: 0px;
+    }
+}
+
+@media (max-width: 991px){
+    .max-width{
+        padding: 0 50px;
+    }
+}
+
+@media (max-width: 950px){
+    .menu-btn{
+        display: block;
+        z-index: 999;
+    }
+
+    .menu-btn i.active:before{
+        content: "\f00d";
+    }
+
+    .navbar .menu{
+        position: fixed;
+        height: 100vh;
+        width: 100%;
+        left: -100%;
+        top: 0;
+        background: #111;
+        text-align: center;
+        padding-top: 80px;
+        transition: all 0.4s ease;
+    }
+    .navbar .menu.active{
+        left: 0;
+    }
+    .navbar .menu li{
+        display: block;
+    }
+    .navbar .menu li a{
+        display: inline-block;
+        margin: 20px 0;
+        font-size: 25px;
+    }
+    .home .home-content .text-2{
+        font-size: 70px;
+    
+    }
+    .home .home-content .text-3{
+        font-size: 35px;
+    }
+}
+
+@media (max-width: 690px){
+    .max-width{
+        padding: 0 23px;
+    }
+    .home .home-content .text-2{
+        font-size: 60px;
+    
+    }
+    .home .home-content .text-3{
+        font-size: 32px;
+    }
+}
+
+@media (max-width: 500px){
+    .home .home-content .text-2{
+        font-size: 50px;
+    
+    }
+    .home .home-content .text-3{
+        font-size: 27px;
+    }
+}
+
+
+
+/*DONT TOUCH THIS PART*/
 #stars {
     width: 1px;
     height: 1px;
