@@ -355,11 +355,22 @@ section .title::after{
     width: 65%;
 }
 
+.skills-content .right .dsa::before{
+    width: 60%;
+}
+
 /*CONTACT ME*/
 
+.contact{
+    background: black;
+    color: #fff;
+}
 .contact .title::after{
     content: "get in touch";
+    background: black;
 }
+
+
 
 .contact .contact-content .column{
     width: calc(50% - 30px);
