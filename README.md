@@ -4,7 +4,7 @@ I am Anshuman Singh. Glad you have visited my profile 🕺.
 
 Currently an undergraduate student with a lot of inquisitiveness about tech. Have been diving deep into the world of open-source and am trying to look for resources to start with blockchain development.
 
-##Skills + Experience
+### Skills + Experience
 Highlights:
 * 🐍 Python
 * 💎 Ruby
