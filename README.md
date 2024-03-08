@@ -2,7 +2,7 @@ Hi ![](https://user-images.githubusercontent.com/18350557/176309783-0785949b-912
 ======================================================================================================================================
 Developer • Product Manager • Speaker
 -------------------------------------
-![A Software Engineer and Product Manager by heart!](https://media.licdn.com/dms/image/C4D16AQFPkDhGjaSyfg/profile-displaybackgroundimage-shrink_350_1400/0/1618822142467?e=1678924800&v=beta&t=HPeymOZoxWXm8Hrp-xHgnMAOW8WEDPIk0liHPNdyaz0)
+
 
 I am Anshuman Singh, a software engineer and product manager. After having amazing experiences with open-source contributions during my internships with GitLab and Major League Hacking, I am now focusing on learning product management and technical business development.
 Thanks for visiting my profile.
