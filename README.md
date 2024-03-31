@@ -3,7 +3,7 @@ Hi ![](https://user-images.githubusercontent.com/18350557/176309783-0785949b-912
 -------------------------------------
 
 
-I am Anshuman Singh, a software engineer and product manager. After having amazing experiences with open-source contributions during my internships with GitLab and Major League Hacking, I am now focusing on learning product management and technical business development.
+I am Anshuman Singh. After having amazing experiences with open-source contributions during my internships with GitLab and Major League Hacking, I am now focusing on learning product management and technical business development.
 Thanks for visiting my profile.
 
 Cheers!
