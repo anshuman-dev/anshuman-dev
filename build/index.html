@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anshuman — Build</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="icon" href="../favicon.png">
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-tabs">
+      <a href="../me/" class="nav-tab">me</a>
+      <a href="../build/" class="nav-tab active">build</a>
+      <a href="../write/" class="nav-tab">write</a>
+      <a href="../gallery/" class="nav-tab">gallery</a>
+    </div>
+    <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
+      <svg id="icon-light" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="icon-dark" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </nav>
+
+  <main class="main">
+    <div class="page-intro">
+      <h1>Things I built</h1>
+      <p>Projects, experiments, and works in progress.</p>
+    </div>
+
+    <ul class="item-list">
+
+      <li class="item">
+        <div class="item-bullet"></div>
+        <div class="item-content">
+          <span class="item-title">
+            Save the Castle
+          </span>
+          <p class="item-desc">A Python OOP game. Shoot the monsters to save the castle. Built to explore object-oriented design patterns.</p>
+        </div>
+      </li>
+
+      <li class="item">
+        <div class="item-bullet"></div>
+        <div class="item-content">
+          <span class="item-title">
+            prepared <span class="tag">soon</span>
+          </span>
+          <p class="item-desc">Coming soon.</p>
+        </div>
+      </li>
+
+      <li class="item">
+        <div class="item-bullet"></div>
+        <div class="item-content">
+          <span class="item-title">
+            SO101 <span class="tag">soon</span>
+          </span>
+          <p class="item-desc">Coming soon.</p>
+        </div>
+      </li>
+
+    </ul>
+  </main>
+
+  <script>
+    var toggle = document.getElementById('themeToggle');
+    var iconLight = document.getElementById('icon-light');
+    var iconDark = document.getElementById('icon-dark');
+
+    function applyTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+      if (t === 'dark') {
+        iconLight.style.display = 'none';
+        iconDark.style.display = 'block';
+      } else {
+        iconLight.style.display = 'block';
+        iconDark.style.display = 'none';
+      }
+    }
+
+    applyTheme(localStorage.getItem('theme') || 'light');
+
+    toggle.addEventListener('click', function() {
+      var current = document.documentElement.getAttribute('data-theme');
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+  </script>
+
+</body>
+</html>
