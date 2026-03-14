@@ -8,7 +8,7 @@
   <link rel="icon" href="../favicon.png">
   <script>
     (function() {
-      var t = localStorage.getItem('theme') || 'light';
+      var t = localStorage.getItem('theme') || 'dark';
       document.documentElement.setAttribute('data-theme', t);
     })();
   </script>
@@ -41,21 +41,33 @@
       <p>Essays, posts, and notes scattered across the internet.</p>
     </div>
 
-    <!-- Add items here as: title linking out + short description
     <ul class="item-list">
+
       <li class="item">
         <div class="item-bullet"></div>
         <div class="item-content">
-          <a href="YOUR_LINK" target="_blank" class="item-title">Title of piece</a>
-          <p class="item-desc">Short description of what it's about.</p>
+          <a href="https://about.gitlab.com/blog/write-vulnerability-detection-rules/" target="_blank" class="item-title">How to write and continuously test vulnerability detection rules for SAST ↗</a>
+          <p class="item-desc">A deep dive into how GitLab built an automated testing framework using Semgrep to write and validate vulnerability detection rules for static analysis — published on the GitLab blog.</p>
         </div>
       </li>
-    </ul>
-    -->
 
-    <div class="gallery-empty">
-      <p>Nothing here yet — check back soon.</p>
-    </div>
+      <li class="item">
+        <div class="item-bullet"></div>
+        <div class="item-content">
+          <a href="https://singhanshuman.hashnode.dev/reflections-from-shadowing-gitlabs-development-director" target="_blank" class="item-title">Reflections from Shadowing GitLab's Development Director ↗</a>
+          <p class="item-desc">Personal reflections and lessons from shadowing a senior engineering leader at GitLab — on management, engineering culture, and working in an async-first remote company.</p>
+        </div>
+      </li>
+
+      <li class="item">
+        <div class="item-bullet"></div>
+        <div class="item-content">
+          <a href="https://singhanshuman.hashnode.dev/applying-for-google-summer-of-code-mentee" target="_blank" class="item-title">Applying for Google Summer of Code as a Mentee ↗</a>
+          <p class="item-desc">A guide on navigating the GSoC application process — finding the right org, writing proposals, and getting selected. Written from first-hand experience contributing to GitLab in 2021.</p>
+        </div>
+      </li>
+
+    </ul>
   </main>
 
   <script>
@@ -75,7 +87,7 @@
       }
     }
 
-    applyTheme(localStorage.getItem('theme') || 'light');
+    applyTheme(localStorage.getItem('theme') || 'dark');
 
     toggle.addEventListener('click', function() {
       var current = document.documentElement.getAttribute('data-theme');

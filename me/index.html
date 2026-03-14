@@ -8,7 +8,7 @@
   <link rel="icon" href="../favicon.png">
   <script>
     (function() {
-      var t = localStorage.getItem('theme') || 'light';
+      var t = localStorage.getItem('theme') || 'dark';
       document.documentElement.setAttribute('data-theme', t);
     })();
   </script>
@@ -50,8 +50,8 @@
       <li class="exp-item">
         <div class="exp-dot"></div>
         <div>
-          <span class="exp-title">Google Summer of Code 2021 — GitLab</span>
-          <p class="exp-desc">Contributed to vulnerability detection rules in my first year of college. Featured in <a href="https://about.gitlab.com/blog/2021/09/01/gsoc-at-gitlab/" target="_blank">GitLab's GSoC post</a> and wrote about <a href="https://about.gitlab.com/blog/2021/09/08/write-vulnerability-detection-rules/" target="_blank">writing detection rules</a>. <a href="https://gitlab.com/groups/gitlab-org/-/epics/6089" target="_blank">See the project →</a></p>
+          <span class="exp-title">Devfolio — Operations Lead</span>
+          <p class="exp-desc">Currently helping with community building and operations. After my engineering stints I chose to explore the product and people side of things.</p>
         </div>
       </li>
       <li class="exp-item">
@@ -64,8 +64,8 @@
       <li class="exp-item">
         <div class="exp-dot"></div>
         <div>
-          <span class="exp-title">Devfolio — Operations Lead</span>
-          <p class="exp-desc">Currently helping with community building and operations. After my engineering stints I chose to explore the product and people side of things.</p>
+          <span class="exp-title">Google Summer of Code 2021 — GitLab</span>
+          <p class="exp-desc">Contributed to vulnerability detection rules in my first year of college. Featured in <a href="https://about.gitlab.com/blog/2021/09/01/gsoc-at-gitlab/" target="_blank">GitLab's GSoC post</a> and wrote about <a href="https://about.gitlab.com/blog/2021/09/08/write-vulnerability-detection-rules/" target="_blank">writing detection rules</a>. <a href="https://gitlab.com/groups/gitlab-org/-/epics/6089" target="_blank">See the project →</a></p>
         </div>
       </li>
     </ul>
@@ -103,7 +103,7 @@
       }
     }
 
-    applyTheme(localStorage.getItem('theme') || 'light');
+    applyTheme(localStorage.getItem('theme') || 'dark');
 
     toggle.addEventListener('click', function() {
       var current = document.documentElement.getAttribute('data-theme');
