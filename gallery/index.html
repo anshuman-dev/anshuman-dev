@@ -8,7 +8,7 @@
   <link rel="icon" href="../favicon.png">
   <script>
     (function() {
-      var t = localStorage.getItem('theme') || 'light';
+      var t = localStorage.getItem('theme') || 'dark';
       document.documentElement.setAttribute('data-theme', t);
     })();
   </script>
@@ -63,7 +63,7 @@
       }
     }
 
-    applyTheme(localStorage.getItem('theme') || 'light');
+    applyTheme(localStorage.getItem('theme') || 'dark');
 
     toggle.addEventListener('click', function() {
       var current = document.documentElement.getAttribute('data-theme');
