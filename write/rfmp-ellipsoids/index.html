@@ -8,6 +8,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ]
+    });"></script>
   <script>
     (function() {
       var t = localStorage.getItem('theme') || 'dark';
@@ -34,6 +43,7 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     html { font-size: 16px; }
 
     body {
@@ -44,6 +54,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* Nav */
     nav {
       display: flex;
       align-items: center;
@@ -57,7 +68,11 @@
       z-index: 100;
     }
 
-    .nav-tabs { display: flex; align-items: center; gap: 2px; }
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
 
     .nav-tab {
       font-family: 'JetBrains Mono', monospace;
@@ -87,6 +102,7 @@
     }
     .theme-btn:hover { color: var(--text); }
 
+    /* Article layout */
     .article {
       max-width: 660px;
       margin: 0 auto;
@@ -108,17 +124,10 @@
       line-height: 1.3;
       letter-spacing: -0.02em;
       color: var(--text);
-      margin-bottom: 12px;
-    }
-
-    .article-subtitle {
-      font-size: 0.9375rem;
-      color: var(--text-muted);
-      font-weight: 300;
-      line-height: 1.6;
       margin-bottom: 48px;
     }
 
+    /* Body typography */
     .article-body p {
       font-size: 0.9375rem;
       line-height: 1.85;
@@ -152,19 +161,27 @@
     }
     .article-body a:hover { opacity: 0.7; }
 
-    .article-body strong { font-weight: 700; color: var(--text); }
-    .article-body em { font-style: italic; color: var(--text-muted); }
+    .article-body strong {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .article-body em {
+      font-style: italic;
+      color: var(--text-muted);
+    }
 
     .article-body blockquote {
       border-left: 2px solid var(--accent);
       padding: 4px 0 4px 20px;
       margin: 32px 0;
+      color: var(--text-muted);
+      font-style: italic;
     }
 
     .article-body blockquote p {
       color: var(--text-muted);
       margin-bottom: 0;
-      font-style: italic;
     }
 
     .article-body code {
@@ -200,6 +217,33 @@
       margin: 48px 0;
     }
 
+    /* Math display blocks */
+    .article-body .katex-display {
+      margin: 28px 0;
+      overflow-x: auto;
+    }
+
+    /* Figures */
+    .article-body figure {
+      margin: 36px 0;
+    }
+
+    .article-body figure img {
+      width: 100%;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    .article-body figcaption {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* Results table */
     .results-table {
       width: 100%;
       border-collapse: collapse;
@@ -226,6 +270,7 @@
     .results-table tr:last-child td { border-bottom: none; }
     .results-table .winner { color: var(--accent); font-weight: 500; }
 
+    /* Footer */
     .article-footer {
       margin-top: 80px;
       padding-top: 32px;
@@ -234,9 +279,13 @@
       color: var(--text-muted);
     }
 
-    .article-footer a { color: var(--accent); text-decoration: none; }
+    .article-footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
     .article-footer a:hover { text-decoration: underline; }
 
+    /* Responsive */
     @media (max-width: 600px) {
       nav { padding: 0 20px; }
       .article { padding: 48px 20px 80px; }
@@ -270,199 +319,455 @@
 
     <p class="article-meta">April 2026 &nbsp;·&nbsp; Research</p>
     <h1 class="article-title">When geometry doesn't help (yet)</h1>
-    <p class="article-subtitle">I spent a few weeks applying a geometric deep learning technique to robot arms. The result was a null finding. Here's why that's the interesting part.</p>
 
     <div class="article-body">
 
       <p>
-        A robot arm moving through space is constantly changing how well it can move in different directions.
-        At some configurations it's free — it can push left, right, up, down with roughly equal ease.
-        At others it's near a singularity, stuck, able to move comfortably in only one direction.
-        This directional dexterity has a mathematical object: a small matrix called the
-        <strong>manipulability ellipsoid</strong>. Elongated means constrained. Round means free.
+        This is a story about a robot arm, a curved space, and a null result that I think is actually
+        the interesting part. I applied Riemannian Flow Matching to robot manipulability ellipsoids and
+        ran it against two baselines. The geometric method didn't win. Here is the full picture of why,
+        with all the math and all the machinery.
+      </p>
+
+      <h2>Start here: what does a robot arm want</h2>
+
+      <p>
+        Imagine a simple robot arm bolted to a table. It has three joints. At any moment, the joints
+        are at some configuration, some set of angles, and the arm can move. But it cannot move equally
+        well in all directions. Depending on the angles, it might be able to push left and right freely
+        but barely move up and down. Or it might be stuck near a singularity, where all the joints are
+        lined up and the arm can only move in one direction at all.
       </p>
 
       <p>
-        These ellipsoids are interesting for a practical reason. If a robot learns good manipulability
-        profiles on one task — say, reaching left — you'd like to transfer that knowledge to a different
-        task without starting from scratch. Noémie Jaquier's lab at KTH studies exactly this problem,
-        and published a framework for it in 2021.
+        This directional dexterity is called <strong>manipulability</strong>. And it has a clean
+        mathematical representation: an ellipsoid. Fat in the directions the arm can move easily.
+        Thin in the directions it is constrained. Round means free. Elongated means nearly singular.
       </p>
 
       <p>
-        Separately, there's a recent technique called <strong>Riemannian Flow Matching</strong> — a way
-        to learn generative models on curved mathematical spaces rather than flat Euclidean ones.
-        Jaquier's lab also published a version of this for robot motion in 2024.
+        The ellipsoid at configuration $\mathbf{q}$ is the matrix $\mathbf{M} = \mathbf{J}\mathbf{J}^\top$,
+        where $\mathbf{J}$ is the Jacobian of the end-effector position with respect to the joint angles.
+        The Jacobian tells you how joint velocity maps to end-effector velocity. So $\mathbf{J}\mathbf{J}^\top$
+        is the set of all end-effector velocities you can produce with unit joint velocity, which is
+        exactly the shape of the dexterity ellipse.
       </p>
 
       <p>
-        The question I set out to answer: can you combine the two? Apply Riemannian Flow Matching
-        directly to the space of manipulability ellipsoids and generate new ones conditioned on a task
-        descriptor? Nobody had done it. I built the pipeline to find out.
-      </p>
-
-      <h2>The geometry problem</h2>
-
-      <p>
-        Manipulability ellipsoids are <strong>symmetric positive-definite (SPD) matrices</strong>.
-        That sounds technical but the key point is simple: you can't treat them like regular numbers.
-        The space they live in is curved — like the surface of a sphere, not a flat plane.
-        If you try to average two ellipsoids by just adding their entries and dividing by two,
-        you can get nonsense. The right way to interpolate between two points on a curved space
-        is along a <em>geodesic</em> — the curved-space equivalent of a straight line.
+        Now there is a practical question. Suppose a robot learns good manipulability profiles on one
+        task: reaching left, say. Can you transfer that knowledge to a different task without relearning
+        from scratch? Noémie Jaquier's lab published a framework for this in 2021. The key problem is
+        that you need to generate new manipulability ellipsoids conditioned on a task description, which
+        means you need a generative model over the space of these ellipsoidal matrices.
       </p>
 
       <p>
-        The naive shortcut is to pick one point on the manifold, flatten everything to a tangent plane
-        at that point, do your math in flat space, and map back. This is called the
-        <strong>single tangent space approximation</strong>. Jaquier's lab published a paper in 2024
-        specifically titled "Unraveling the Single Tangent Space Fallacy" — showing this breaks down
-        when your data is spread widely across the curved space. I wanted to test whether that fallacy
-        actually shows up in practice for manipulability data.
+        That space is not flat. That is where this gets interesting.
       </p>
 
-      <h2>What I built</h2>
+      <h2>The space of ellipsoids is curved</h2>
 
       <p>
-        Everything runs on a MacBook — no GPU server, no simulator, no robot. The SPD matrices for
-        a robot arm are small (3×3 or 6×6), the networks are small, and robot kinematics is just math.
-        I generated a synthetic dataset by simulating a 3-joint planar arm moving through 500 random
-        trajectories, computing a manipulability ellipsoid at each step.
+        The matrix $\mathbf{M} = \mathbf{J}\mathbf{J}^\top$ is always <strong>symmetric
+        positive-definite (SPD)</strong>. Symmetric means $\mathbf{M}^\top = \mathbf{M}$.
+        Positive-definite means all eigenvalues are strictly positive, which is just saying the
+        ellipsoid has a real shape and hasn't collapsed to a flat line or a point.
       </p>
 
       <p>
-        Then I trained three models on the same data:
+        The set of all $n \times n$ SPD matrices, which we write $\mathcal{S}_{++}^n$, is a
+        Riemannian manifold. That phrase is easy to say and hard to feel. The intuition is this: you
+        cannot do arithmetic on SPD matrices the same way you do arithmetic on numbers. If you take two
+        SPD matrices and average their entries, you can get a result that is not SPD. More insidiously,
+        the straight line between two SPD matrices in flat vector space does not correspond to a
+        meaningful path between two ellipsoids in the physical world.
       </p>
 
       <p>
-        <strong>RFM (mine):</strong> Riemannian Flow Matching on the SPD manifold. Geodesics, curved
-        interpolation, the full geometric treatment. The neural network learns a vector field on the
-        manifold and generates new ellipsoids by integrating it.
+        The right notion of distance between two SPD matrices $\mathbf{S}$ and $\mathbf{T}$, under
+        the affine-invariant metric, is:
+      </p>
+
+      $$d(\mathbf{S}, \mathbf{T}) = \left\| \log\!\left(\mathbf{S}^{-1/2} \mathbf{T} \mathbf{S}^{-1/2}\right) \right\|_F$$
+
+      <p>
+        This is the length of the geodesic, the curved-space analog of a straight line, connecting the
+        two matrices. The $\mathbf{S}^{-1/2}(\cdot)\mathbf{S}^{-1/2}$ transformation removes the
+        curvature contribution from the basepoint $\mathbf{S}$, and the matrix logarithm maps the
+        result back to a flat tangent space where we can take a Frobenius norm.
       </p>
 
       <p>
-        <strong>Euclidean baseline:</strong> Flatten the ellipsoid to a 3-number vector, run standard
-        flow matching in flat space, reconstruct. Geometry completely ignored.
+        The tools for navigating this curved space are two maps. The <strong>exponential map</strong>
+        takes a tangent vector $\mathbf{V}$ at a point $\mathbf{S}$ and shoots it out along the
+        geodesic to land on the manifold:
+      </p>
+
+      $$\mathrm{Exp}_{\mathbf{S}}(\mathbf{V}) = \mathbf{S}^{1/2} \exp\!\left(\mathbf{S}^{-1/2} \mathbf{V} \mathbf{S}^{-1/2}\right) \mathbf{S}^{1/2}$$
+
+      <p>
+        The <strong>logarithmic map</strong> is the inverse: given two points $\mathbf{S}$ and
+        $\mathbf{T}$, it finds the tangent vector at $\mathbf{S}$ that points toward $\mathbf{T}$:
+      </p>
+
+      $$\mathrm{Log}_{\mathbf{S}}(\mathbf{T}) = \mathbf{S}^{1/2} \log\!\left(\mathbf{S}^{-1/2} \mathbf{T} \mathbf{S}^{-1/2}\right) \mathbf{S}^{1/2}$$
+
+      <p>
+        Both the matrix exponential and matrix logarithm are computed via eigendecomposition. If
+        $\mathbf{A} = \mathbf{U} \mathbf{\Lambda} \mathbf{U}^\top$, then
+        $\exp(\mathbf{A}) = \mathbf{U} \exp(\mathbf{\Lambda}) \mathbf{U}^\top$ where the exponential
+        of a diagonal matrix is just the elementwise exponential of the diagonal. All of this runs on
+        CPU in the implementation because MPS (Apple's GPU backend) does not reliably support
+        eigendecomposition for all matrix sizes.
+      </p>
+
+      <h2>What is flow matching</h2>
+
+      <p>
+        Flow matching is a generative modeling technique. The idea is simple: you have a source
+        distribution (easy to sample, like a Gaussian) and a target distribution (your actual data).
+        You want to learn a vector field that, when you follow it over time $t \in [0, 1]$, takes
+        samples from the source and moves them to the target.
       </p>
 
       <p>
-        <strong>Single tangent space baseline:</strong> The "wrong but common" approach — flatten
-        everything to one tangent plane, train, map back. On the manifold technically, but only
-        with a flat approximation.
+        The key insight from Lipman et al. (2023) is that you do not need to train on the global
+        vector field. You can condition on individual data points and train the network to predict
+        the vector field that connects a specific source sample $\mathbf{x}_0$ to a specific target
+        point $\mathbf{x}_1$. The loss is:
       </p>
 
-      <h2>What happened</h2>
+      $$\mathcal{L} = \mathbb{E}_{t,\, \mathbf{x}_0,\, \mathbf{x}_1} \left\| v_\theta(\mathbf{x}_t, t) - u_t(\mathbf{x}_t \mid \mathbf{x}_1) \right\|^2$$
 
       <p>
-        Before I even looked at the results, something interesting emerged during training.
-        The Euclidean and single tangent space models refused to train stably with the standard
-        flow matching objective. The training loss would swing by factors of a thousand between epochs.
-        The Riemannian model trained smoothly from the start.
+        where $\mathbf{x}_t = (1-t)\mathbf{x}_0 + t\mathbf{x}_1$ is the linear interpolation, and
+        $u_t(\mathbf{x}_t \mid \mathbf{x}_1) = \mathbf{x}_1 - \mathbf{x}_0$ is the constant target
+        velocity. The neural network $v_\theta$ learns to approximate this target field. At inference,
+        you start from noise and integrate the ODE
+        $\dot{\mathbf{x}} = v_\theta(\mathbf{x}, t)$ from $t=0$ to $t=1$ using Euler steps.
+      </p>
+
+      <h2>Riemannian flow matching</h2>
+
+      <p>
+        Chen and Lipman (2024) extended flow matching to Riemannian manifolds. The modification is
+        exactly what you would expect: replace the straight-line interpolation with a geodesic, and
+        replace the flat velocity with the Riemannian log map velocity.
       </p>
 
       <p>
-        The reason is geometric. Standard flow matching targets a velocity
-        <code>(endpoint − noise) / (1 − t)</code> — as <code>t</code> approaches 1,
-        this blows up. The Riemannian version doesn't have this problem:
-        the log map on the manifold naturally goes to zero as you approach the target,
-        keeping the velocity bounded throughout. I had to switch to a different parameterisation
-        for the flat baselines to stabilise them.
+        Given a source sample $\mathbf{M}_0$ and a target $\mathbf{M}_1$ on the SPD manifold, the
+        geodesic interpolation at time $t$ is:
+      </p>
+
+      $$\mathbf{M}_t = \mathrm{Exp}_{\mathbf{M}_0}\!\left(t \cdot \mathrm{Log}_{\mathbf{M}_0}(\mathbf{M}_1)\right)$$
+
+      <p>
+        The target velocity at time $t$, pointing from $\mathbf{M}_t$ toward $\mathbf{M}_1$, is:
+      </p>
+
+      $$u_t(\mathbf{M}_t \mid \mathbf{M}_1) = \frac{\mathrm{Log}_{\mathbf{M}_t}(\mathbf{M}_1)}{1 - t}$$
+
+      <p>
+        And the RFM training loss is:
+      </p>
+
+      $$\mathcal{L}_{\mathrm{RFM}} = \mathbb{E}\left\| v_\theta(\mathbf{M}_t, t, \mathbf{c}) - \frac{\mathrm{Log}_{\mathbf{M}_t}(\mathbf{M}_1)}{1-t} \right\|_F^2$$
+
+      <p>
+        where $\mathbf{c}$ is the task conditioning. There is something important to notice about this
+        target as $t \to 1$: $\mathbf{M}_t \to \mathbf{M}_1$, so
+        $\mathrm{Log}_{\mathbf{M}_t}(\mathbf{M}_1) \to \mathbf{0}$, and it goes to zero faster than
+        $(1-t)$ in the denominator. So the target velocity stays bounded throughout training. This
+        fact will come up again.
+      </p>
+
+      <h2>The single tangent space fallacy</h2>
+
+      <p>
+        Before building RFM, I needed baselines to compare against. The natural ones are: (1) ignore
+        the manifold entirely and run flow matching in flat Euclidean space, and (2) use the common
+        shortcut of approximating the manifold with a single tangent space.
       </p>
 
       <p>
-        The actual performance numbers:
+        The single tangent space (STS) approach works like this. Pick a reference point
+        $\mathbf{S}_0$ on the manifold. Map all your data to the tangent space at that point via
+        $\mathrm{Log}_{\mathbf{S}_0}$. Do all your machine learning in that flat tangent space. At
+        inference, map samples back via $\mathrm{Exp}_{\mathbf{S}_0}$. This is cheap and easy to
+        implement because you only ever do Riemannian operations at one fixed point.
+      </p>
+
+      <p>
+        Jaquier et al. published a paper in 2024 called "Unraveling the Single Tangent Space
+        Fallacy" showing exactly when this breaks down. A tangent space at $\mathbf{S}_0$ is a
+        first-order approximation to the manifold, like touching a curved surface with a flat plane.
+        If your data points are close to $\mathbf{S}_0$, the approximation is fine. If they are far
+        away, the curvature of the manifold causes the flat approximation to systematically distort
+        distances and distributions. The fallacy is assuming the tangent space is always good enough.
+      </p>
+
+      <p>
+        I wanted to test whether this fallacy actually shows up for manipulability data. That required
+        building all three methods and running them on the same dataset.
+      </p>
+
+      <h2>The data</h2>
+
+      <p>
+        Everything runs on a MacBook. No GPU server, no simulator, no robot. I generated a synthetic
+        dataset using a 3-joint planar robot arm with unit link lengths. The forward kinematics is just
+        trigonometry. For a 3-joint arm with angles $\mathbf{q} = [q_1, q_2, q_3]$, the end-effector
+        position is:
+      </p>
+
+      $$\mathbf{p}(\mathbf{q}) = \begin{bmatrix} \sum_{i=1}^{3} \cos\!\left(\sum_{j=1}^{i} q_j\right) \\ \sum_{i=1}^{3} \sin\!\left(\sum_{j=1}^{i} q_j\right) \end{bmatrix}$$
+
+      <p>
+        The Jacobian $\mathbf{J}(\mathbf{q}) \in \mathbb{R}^{2 \times 3}$ is the derivative of this
+        with respect to $\mathbf{q}$. The $k$-th column is:
+      </p>
+
+      $$\mathbf{J}_k = \begin{bmatrix} -\sum_{i=k}^{3} \sin\!\left(\sum_{j=1}^{i} q_j\right) \\ \phantom{-}\sum_{i=k}^{3} \cos\!\left(\sum_{j=1}^{i} q_j\right) \end{bmatrix}$$
+
+      <p>
+        At each configuration I compute $\mathbf{M}(\mathbf{q}) = \mathbf{J}(\mathbf{q})\mathbf{J}(\mathbf{q})^\top \in \mathcal{S}_{++}^2$,
+        a $2 \times 2$ SPD matrix. I generated 500 trajectories by sampling random start and end
+        configurations in $[-\pi, \pi]^3$, interpolating 50 steps each in joint space. That gives
+        25,000 SPD matrices total. The task descriptor for each trajectory is $\mathbf{c} = [\mathbf{p}_\mathrm{start};\, \mathbf{p}_\mathrm{end}] \in \mathbb{R}^4$.
+      </p>
+
+      <h2>The models</h2>
+
+      <h3>RFM</h3>
+
+      <p>
+        The vector field network is a 4-layer MLP with hidden dimension 128, SiLU activations, and
+        51,075 parameters total. The input is the upper-triangle of $\mathbf{M}$ (3 values for a
+        $2 \times 2$ matrix), the time $t \in [0,1]$, and the task descriptor $\mathbf{c}$.
+        The output is a symmetric $2 \times 2$ matrix representing a tangent vector.
+      </p>
+
+      <p>
+        Training: Adam with learning rate $10^{-3}$ and cosine annealing, batch size 32, 200 epochs,
+        90/10 train/val split. Manifold operations on CPU, network forward/backward on MPS.
+      </p>
+
+      <h3>Euclidean FM</h3>
+
+      <p>
+        Flatten each SPD matrix to its upper-triangle vector $(M_{11}, M_{12}, M_{22}) \in \mathbb{R}^3$.
+        Normalize each element to zero mean and unit variance using statistics from the training set.
+        Run standard flow matching. At inference, denormalize and reconstruct the symmetric matrix,
+        then clamp negative eigenvalues to a small positive value to project back to
+        $\mathcal{S}_{++}^2$.
+      </p>
+
+      <h3>Single tangent space FM</h3>
+
+      <p>
+        Compute the reference point $\mathbf{S}_0$ as an approximation to the Frechet mean of the
+        training set: start at the identity, take 10 gradient steps averaging the log-mapped training
+        points, project back. Map all training data to the tangent space at $\mathbf{S}_0$ via
+        $\mathrm{Log}_{\mathbf{S}_0}$, normalize in that tangent space, train flow matching, and at
+        inference exp-map back.
+      </p>
+
+      <h3>A necessary fix: x-prediction</h3>
+
+      <p>
+        The first time I trained the flat baselines with the standard velocity-prediction objective,
+        the training loss oscillated by factors of a thousand between epochs. The problem is the
+        target velocity $(\mathbf{x}_1 - \mathbf{x}_t) / (1-t)$. As $t$ approaches 1 this blows up.
+        In Euclidean space there is no mechanism to bound it. In stochastic minibatches you will
+        occasionally sample $t$ close to 1, and those samples send the gradient to infinity.
+      </p>
+
+      <p>
+        The fix is to switch to the <strong>x-prediction parameterization</strong>: instead of
+        predicting the velocity, the network predicts the endpoint $\mathbf{x}_1$ directly. The loss
+        becomes $\| f_\theta(\mathbf{x}_t, t, \mathbf{c}) - \mathbf{x}_1 \|^2$, which is always
+        $O(1)$ regardless of $t$. At inference, given the predicted $\hat{\mathbf{x}}_1$, you
+        construct the velocity as $(\hat{\mathbf{x}}_1 - \mathbf{x}_t) / (1-t)$ and integrate as
+        before. RFM does not need this fix because the log map already provides the natural bound.
+      </p>
+
+      <h2>Experiments</h2>
+
+      <h3>Training dynamics</h3>
+
+      <p>
+        RFM converged smoothly. Validation loss went from 6.93 at epoch 1 to 3.64 at epoch 200, with
+        the best checkpoint at epoch 163 (val loss 3.6391). Both flat baselines also converged stably
+        under x-prediction: Euclidean from 1.56 to 0.85, STS from 1.58 to 0.94.
+      </p>
+
+      <figure>
+        <img src="loss.png" alt="RFM training loss curve">
+        <figcaption>Fig 1. RFM training and validation loss over 200 epochs. Smooth monotone convergence, best checkpoint at epoch 163.</figcaption>
+      </figure>
+
+      <h3>Quantitative results</h3>
+
+      <p>
+        I evaluated all three methods on 8 held-out trajectories (50 steps each) generated with a
+        different random seed than training. For each trajectory, each model generates 50 SPD matrices
+        conditioned on the task descriptor. I measure mean geodesic distance between generated
+        matrices and ground truth.
       </p>
 
       <table class="results-table">
         <thead>
           <tr>
             <th>Method</th>
-            <th>Mean distance ↓</th>
+            <th>Mean geodesic dist. (lower is better)</th>
             <th>Std</th>
+            <th>Best traj.</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Euclidean FM</td>
-            <td>4.25</td>
-            <td>2.51</td>
+            <td>4.254</td>
+            <td>2.513</td>
+            <td>1.683</td>
           </tr>
           <tr>
-            <td>RFM (mine)</td>
-            <td>3.66</td>
-            <td>2.19</td>
+            <td>RFM (ours)</td>
+            <td>3.657</td>
+            <td>2.186</td>
+            <td>1.482</td>
           </tr>
           <tr class="winner">
-            <td>Single Tangent Space FM</td>
-            <td>3.13</td>
-            <td>0.91</td>
+            <td>STS FM</td>
+            <td>3.126</td>
+            <td>0.911</td>
+            <td>1.851</td>
           </tr>
         </tbody>
       </table>
 
       <p>
-        The single tangent space method won on mean distance. The method the 2024 paper
-        says is a fallacy performed best on my dataset. RFM beat the Euclidean baseline
-        but didn't beat the supposedly wrong approximation.
+        RFM outperforms Euclidean FM. But STS FM wins on both mean and variance. The method the 2024
+        paper says is a fallacy performed best.
       </p>
 
-      <h2>Why this is the interesting part</h2>
+      <figure>
+        <img src="comparison.png" alt="Per-trajectory comparison of geodesic distances">
+        <figcaption>Fig 2. Per-trajectory and overall distribution of mean geodesic distances. Euclidean FM has the highest error. RFM and STS are comparable in mean, but STS shows tighter variance.</figcaption>
+      </figure>
+
+      <h3>Qualitative results</h3>
+
+      <figure>
+        <img src="comparison_visual.png" alt="Ellipsoid visualizations for each method">
+        <figcaption>Fig 3. Generated ellipsoids overlaid on ground truth for best (top) and worst (bottom) RFM trajectories. Columns: ground truth, RFM, Euclidean, STS. All methods generate plausible shapes but fail to track trajectory-level variation.</figcaption>
+      </figure>
 
       <p>
-        The single tangent space fallacy is real — but it's conditional. It shows up when your
-        data is spread far across the manifold, far enough that the curvature matters. My synthetic
-        dataset, a 3-joint planar arm with randomly sampled joint angles, doesn't stress the geometry
-        enough. The ellipsoids live in a moderate region of the SPD manifold. The curvature is there
-        but not dramatic enough for the approximation to visibly fail.
+        Looking at the ellipsoid visualizations: all three methods produce SPD matrices in roughly the
+        right region of space. None of them fully track how the ellipsoid shape evolves along the
+        trajectory. The generated ellipsoids tend to cluster around a central estimate rather than
+        faithfully reproducing the ground truth path. This is a conditioning problem as much as a
+        geometry problem. The task descriptor $\mathbf{c} = [\mathbf{p}_\mathrm{start}; \mathbf{p}_\mathrm{end}]$
+        is a weak signal, and four numbers do not uniquely determine a trajectory of 50 ellipsoids.
       </p>
 
-      <blockquote>
-        <p>A null finding with a clear explanation of why it's null is more useful than a positive
-        result you don't understand.</p>
-      </blockquote>
+      <h2>Why the fallacy did not appear</h2>
 
       <p>
-        What would make the fallacy appear? Near-singular configurations where ellipsoids become
-        nearly degenerate — very flat, close to zero eigenvalues, lying in extreme corners of the
-        manifold. Or transferring between robots with very different kinematics, which would force
-        the data to span a much wider region. Or moving from 2D position to 6D pose, where the
-        6×6 SPD manifold has much higher intrinsic curvature.
-      </p>
-
-      <p>
-        These are testable hypotheses. The pipeline exists. The comparison infrastructure is in place.
-        Running it on a harder dataset is a concrete next step — not a vague "future work" gesture
-        but an actual experiment I know how to run.
-      </p>
-
-      <h2>What I came away with</h2>
-
-      <p>
-        I went in expecting to confirm that geometry helps. I came out with evidence that it
-        <em>sometimes</em> helps, under conditions I can now characterise. That's more useful.
+        The single tangent space fallacy is a statement about data spread on the manifold. It
+        manifests when your data points sit far from the reference point $\mathbf{S}_0$, because the
+        tangent plane at $\mathbf{S}_0$ is a linear approximation to the manifold, and linear
+        approximations get worse the farther you are from the reference.
       </p>
 
       <p>
-        The training stability result is real and not dataset-dependent. Riemannian flow matching
-        is inherently better conditioned than flat flow matching because the manifold geometry
-        provides natural bounds on the velocity field. That advantage exists regardless of whether
-        the curvature is large enough to affect final performance.
+        For a 3-joint planar arm with uniformly sampled joint configurations, the manipulability
+        ellipsoids live in a moderate region of $\mathcal{S}_{++}^2$. The data is not spread to
+        extreme corners of the manifold. The curvature is there mathematically, but the data does not
+        sit in regions where that curvature has large practical effect. So the tangent space
+        approximation holds up fine.
       </p>
 
       <p>
-        The full code is on <a href="https://github.com/anshuman-dev/rfmp-ellipsoids" target="_blank">GitHub</a>,
-        including a test suite that verifies all the manifold operations (exp map, log map, geodesic)
-        before any training runs. The technical report is in the repo. Everything runs on a Mac.
+        The conditions under which RFM should win over STS are:
+      </p>
+
+      <p>
+        <strong>Near-singular configurations.</strong> When the arm is close to a kinematic
+        singularity, $\mathbf{J}$ is nearly rank-deficient, and $\mathbf{M} = \mathbf{J}\mathbf{J}^\top$
+        has a very small eigenvalue. Those matrices sit in extreme regions of the manifold, far from
+        the bulk of the distribution and far from any reasonable reference point. There, tangent space
+        approximation fails badly.
+      </p>
+
+      <p>
+        <strong>Higher-dimensional SPD matrices.</strong> I used a $2 \times 2$ SPD manifold
+        ($\mathcal{S}_{++}^2$), which has relatively low intrinsic curvature. A $6 \times 6$
+        manipulability matrix (full 6-DoF pose) lives on a much higher-dimensional manifold with much
+        larger curvature. The single tangent space approximation becomes worse as dimension increases.
+      </p>
+
+      <p>
+        <strong>Cross-robot transfer.</strong> Transferring between robots with very different
+        kinematic structures forces the dataset to span a wide region of the manifold. A reference
+        point that is good for robot A may be poor for robot B, and the combined data will expose the
+        curvature.
+      </p>
+
+      <p>
+        These are concrete, testable hypotheses. The pipeline is in place. Running on a harder dataset
+        is not a vague "future work" statement, it is an experiment I know how to run.
+      </p>
+
+      <h2>Training stability as a separate finding</h2>
+
+      <p>
+        Separate from the geodesic distance numbers, there is a result about training that is
+        dataset-independent. RFM trains stably with the velocity-prediction objective. The flat
+        baselines did not. This asymmetry comes directly from the manifold geometry.
+      </p>
+
+      <p>
+        In flat flow matching, the target velocity at time $t$ is:
+      </p>
+
+      $$u_t = \frac{\mathbf{x}_1 - \mathbf{x}_t}{1 - t}$$
+
+      <p>
+        As $t \to 1$, $\mathbf{x}_t \to \mathbf{x}_1$, and numerically the difference
+        $\mathbf{x}_1 - \mathbf{x}_t$ goes to zero at the same rate as $(1-t)$, so the ratio stays
+        finite in expectation but has arbitrarily high variance for any fixed $t$ near 1.
+        In stochastic training with random $t$ values, this causes enormous gradient variance.
+      </p>
+
+      <p>
+        In RFM, the target is $\mathrm{Log}_{\mathbf{M}_t}(\mathbf{M}_1) / (1-t)$. The log map
+        measures geodesic displacement. As $\mathbf{M}_t \to \mathbf{M}_1$ along the geodesic,
+        the log map goes to zero <em>quadratically</em> faster than $(1-t)$ goes to zero. The ratio
+        is bounded throughout. This is the manifold geometry providing a natural regularization that
+        flat space does not have.
+      </p>
+
+      <p>
+        This advantage is real and practical, regardless of whether the curvature is large enough to
+        affect final performance on a given dataset.
       </p>
 
       <hr>
 
       <p>
-        This project was built as a portfolio piece for a PhD application to
-        Noémie Jaquier's Geometric Robot Learning Lab at KTH. Whether or not
-        that goes anywhere, I learned more about Riemannian geometry in three
-        weeks than in the previous three years of reading about it abstractly.
-        Building things has a way of doing that.
+        The full code is on <a href="https://github.com/anshuman-dev/rfmp-ellipsoids" target="_blank">GitHub</a>,
+        including 30 unit tests that verify all manifold operations before any training runs. The
+        technical report is in the repo. Everything runs on a MacBook in under 30 minutes.
+      </p>
+
+      <p>
+        This was built as a portfolio piece for a PhD application to Noémie Jaquier's Geometric Robot
+        Learning Lab at KTH. Whether or not that goes anywhere, I learned more practical Riemannian
+        geometry in three weeks than in the previous three years of reading about it. There is no
+        substitute for getting the shapes wrong once and having to figure out why.
       </p>
 
     </div>
