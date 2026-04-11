@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>When geometry doesn't help (yet) — Anshuman</title>
+  <link rel="icon" href="../../favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <style>
+    :root {
+      --bg:         #0d0d0d;
+      --text:       #e8e8e8;
+      --text-muted: #888;
+      --accent:     #C08552;
+      --border:     #222;
+      --surface:    #161616;
+    }
+
+    [data-theme="light"] {
+      --bg:         #f9f9f7;
+      --text:       #1a1a1a;
+      --text-muted: #666;
+      --accent:     #a06030;
+      --border:     #e0e0e0;
+      --surface:    #f0f0ee;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    .nav-tabs { display: flex; align-items: center; gap: 2px; }
+
+    .nav-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 400;
+      text-decoration: none;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+    .theme-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      border-radius: 6px;
+      transition: color 0.2s;
+    }
+    .theme-btn:hover { color: var(--text); }
+
+    .article {
+      max-width: 660px;
+      margin: 0 auto;
+      padding: 72px 40px 120px;
+    }
+
+    .article-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .article-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .article-subtitle {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      line-height: 1.6;
+      margin-bottom: 48px;
+    }
+
+    .article-body p {
+      font-size: 0.9375rem;
+      line-height: 1.85;
+      color: var(--text);
+      margin-bottom: 24px;
+      font-weight: 300;
+    }
+
+    .article-body h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 48px 0 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .article-body h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text);
+      margin: 32px 0 12px;
+    }
+
+    .article-body a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: opacity 0.2s;
+    }
+    .article-body a:hover { opacity: 0.7; }
+
+    .article-body strong { font-weight: 700; color: var(--text); }
+    .article-body em { font-style: italic; color: var(--text-muted); }
+
+    .article-body blockquote {
+      border-left: 2px solid var(--accent);
+      padding: 4px 0 4px 20px;
+      margin: 32px 0;
+    }
+
+    .article-body blockquote p {
+      color: var(--text-muted);
+      margin-bottom: 0;
+      font-style: italic;
+    }
+
+    .article-body code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      background: var(--surface);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .article-body pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px;
+      overflow-x: auto;
+      margin: 28px 0;
+    }
+
+    .article-body pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.8125rem;
+      color: var(--text);
+    }
+
+    .article-body hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 28px 0;
+      font-size: 0.8125rem;
+    }
+
+    .results-table th {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--accent);
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    .results-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 300;
+    }
+
+    .results-table tr:last-child td { border-bottom: none; }
+    .results-table .winner { color: var(--accent); font-weight: 500; }
+
+    .article-footer {
+      margin-top: 80px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    .article-footer a { color: var(--accent); text-decoration: none; }
+    .article-footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 20px; }
+      .article { padding: 48px 20px 80px; }
+      .article-title { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-tabs">
+      <a href="../../" class="nav-tab">me</a>
+      <a href="../../build/" class="nav-tab">build</a>
+      <a href="../../write/" class="nav-tab active">write</a>
+      <a href="../../gallery/" class="nav-tab">gallery</a>
+    </div>
+    <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
+      <svg id="icon-light" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="icon-dark" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </nav>
+
+  <article class="article">
+
+    <p class="article-meta">April 2026 &nbsp;·&nbsp; Research</p>
+    <h1 class="article-title">When geometry doesn't help (yet)</h1>
+    <p class="article-subtitle">I spent a few weeks applying a geometric deep learning technique to robot arms. The result was a null finding. Here's why that's the interesting part.</p>
+
+    <div class="article-body">
+
+      <p>
+        A robot arm moving through space is constantly changing how well it can move in different directions.
+        At some configurations it's free — it can push left, right, up, down with roughly equal ease.
+        At others it's near a singularity, stuck, able to move comfortably in only one direction.
+        This directional dexterity has a mathematical object: a small matrix called the
+        <strong>manipulability ellipsoid</strong>. Elongated means constrained. Round means free.
+      </p>
+
+      <p>
+        These ellipsoids are interesting for a practical reason. If a robot learns good manipulability
+        profiles on one task — say, reaching left — you'd like to transfer that knowledge to a different
+        task without starting from scratch. Noémie Jaquier's lab at KTH studies exactly this problem,
+        and published a framework for it in 2021.
+      </p>
+
+      <p>
+        Separately, there's a recent technique called <strong>Riemannian Flow Matching</strong> — a way
+        to learn generative models on curved mathematical spaces rather than flat Euclidean ones.
+        Jaquier's lab also published a version of this for robot motion in 2024.
+      </p>
+
+      <p>
+        The question I set out to answer: can you combine the two? Apply Riemannian Flow Matching
+        directly to the space of manipulability ellipsoids and generate new ones conditioned on a task
+        descriptor? Nobody had done it. I built the pipeline to find out.
+      </p>
+
+      <h2>The geometry problem</h2>
+
+      <p>
+        Manipulability ellipsoids are <strong>symmetric positive-definite (SPD) matrices</strong>.
+        That sounds technical but the key point is simple: you can't treat them like regular numbers.
+        The space they live in is curved — like the surface of a sphere, not a flat plane.
+        If you try to average two ellipsoids by just adding their entries and dividing by two,
+        you can get nonsense. The right way to interpolate between two points on a curved space
+        is along a <em>geodesic</em> — the curved-space equivalent of a straight line.
+      </p>
+
+      <p>
+        The naive shortcut is to pick one point on the manifold, flatten everything to a tangent plane
+        at that point, do your math in flat space, and map back. This is called the
+        <strong>single tangent space approximation</strong>. Jaquier's lab published a paper in 2024
+        specifically titled "Unraveling the Single Tangent Space Fallacy" — showing this breaks down
+        when your data is spread widely across the curved space. I wanted to test whether that fallacy
+        actually shows up in practice for manipulability data.
+      </p>
+
+      <h2>What I built</h2>
+
+      <p>
+        Everything runs on a MacBook — no GPU server, no simulator, no robot. The SPD matrices for
+        a robot arm are small (3×3 or 6×6), the networks are small, and robot kinematics is just math.
+        I generated a synthetic dataset by simulating a 3-joint planar arm moving through 500 random
+        trajectories, computing a manipulability ellipsoid at each step.
+      </p>
+
+      <p>
+        Then I trained three models on the same data:
+      </p>
+
+      <p>
+        <strong>RFM (mine):</strong> Riemannian Flow Matching on the SPD manifold. Geodesics, curved
+        interpolation, the full geometric treatment. The neural network learns a vector field on the
+        manifold and generates new ellipsoids by integrating it.
+      </p>
+
+      <p>
+        <strong>Euclidean baseline:</strong> Flatten the ellipsoid to a 3-number vector, run standard
+        flow matching in flat space, reconstruct. Geometry completely ignored.
+      </p>
+
+      <p>
+        <strong>Single tangent space baseline:</strong> The "wrong but common" approach — flatten
+        everything to one tangent plane, train, map back. On the manifold technically, but only
+        with a flat approximation.
+      </p>
+
+      <h2>What happened</h2>
+
+      <p>
+        Before I even looked at the results, something interesting emerged during training.
+        The Euclidean and single tangent space models refused to train stably with the standard
+        flow matching objective. The training loss would swing by factors of a thousand between epochs.
+        The Riemannian model trained smoothly from the start.
+      </p>
+
+      <p>
+        The reason is geometric. Standard flow matching targets a velocity
+        <code>(endpoint − noise) / (1 − t)</code> — as <code>t</code> approaches 1,
+        this blows up. The Riemannian version doesn't have this problem:
+        the log map on the manifold naturally goes to zero as you approach the target,
+        keeping the velocity bounded throughout. I had to switch to a different parameterisation
+        for the flat baselines to stabilise them.
+      </p>
+
+      <p>
+        The actual performance numbers:
+      </p>
+
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Mean distance ↓</th>
+            <th>Std</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Euclidean FM</td>
+            <td>4.25</td>
+            <td>2.51</td>
+          </tr>
+          <tr>
+            <td>RFM (mine)</td>
+            <td>3.66</td>
+            <td>2.19</td>
+          </tr>
+          <tr class="winner">
+            <td>Single Tangent Space FM</td>
+            <td>3.13</td>
+            <td>0.91</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        The single tangent space method won on mean distance. The method the 2024 paper
+        says is a fallacy performed best on my dataset. RFM beat the Euclidean baseline
+        but didn't beat the supposedly wrong approximation.
+      </p>
+
+      <h2>Why this is the interesting part</h2>
+
+      <p>
+        The single tangent space fallacy is real — but it's conditional. It shows up when your
+        data is spread far across the manifold, far enough that the curvature matters. My synthetic
+        dataset, a 3-joint planar arm with randomly sampled joint angles, doesn't stress the geometry
+        enough. The ellipsoids live in a moderate region of the SPD manifold. The curvature is there
+        but not dramatic enough for the approximation to visibly fail.
+      </p>
+
+      <blockquote>
+        <p>A null finding with a clear explanation of why it's null is more useful than a positive
+        result you don't understand.</p>
+      </blockquote>
+
+      <p>
+        What would make the fallacy appear? Near-singular configurations where ellipsoids become
+        nearly degenerate — very flat, close to zero eigenvalues, lying in extreme corners of the
+        manifold. Or transferring between robots with very different kinematics, which would force
+        the data to span a much wider region. Or moving from 2D position to 6D pose, where the
+        6×6 SPD manifold has much higher intrinsic curvature.
+      </p>
+
+      <p>
+        These are testable hypotheses. The pipeline exists. The comparison infrastructure is in place.
+        Running it on a harder dataset is a concrete next step — not a vague "future work" gesture
+        but an actual experiment I know how to run.
+      </p>
+
+      <h2>What I came away with</h2>
+
+      <p>
+        I went in expecting to confirm that geometry helps. I came out with evidence that it
+        <em>sometimes</em> helps, under conditions I can now characterise. That's more useful.
+      </p>
+
+      <p>
+        The training stability result is real and not dataset-dependent. Riemannian flow matching
+        is inherently better conditioned than flat flow matching because the manifold geometry
+        provides natural bounds on the velocity field. That advantage exists regardless of whether
+        the curvature is large enough to affect final performance.
+      </p>
+
+      <p>
+        The full code is on <a href="https://github.com/anshuman-dev/rfmp-ellipsoids" target="_blank">GitHub</a>,
+        including a test suite that verifies all the manifold operations (exp map, log map, geodesic)
+        before any training runs. The technical report is in the repo. Everything runs on a Mac.
+      </p>
+
+      <hr>
+
+      <p>
+        This project was built as a portfolio piece for a PhD application to
+        Noémie Jaquier's Geometric Robot Learning Lab at KTH. Whether or not
+        that goes anywhere, I learned more about Riemannian geometry in three
+        weeks than in the previous three years of reading about it abstractly.
+        Building things has a way of doing that.
+      </p>
+
+    </div>
+
+    <footer class="article-footer">
+      <p>← <a href="../../write/">Back to writing</a></p>
+    </footer>
+
+  </article>
+
+  <script>
+    var toggle = document.getElementById('themeToggle');
+    var iconLight = document.getElementById('icon-light');
+    var iconDark = document.getElementById('icon-dark');
+
+    function applyTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+      if (t === 'dark') {
+        iconLight.style.display = 'none';
+        iconDark.style.display = 'block';
+      } else {
+        iconLight.style.display = 'block';
+        iconDark.style.display = 'none';
+      }
+    }
+
+    applyTheme(localStorage.getItem('theme') || 'dark');
+
+    toggle.addEventListener('click', function() {
+      var current = document.documentElement.getAttribute('data-theme');
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+  </script>
+
+</body>
+</html>
