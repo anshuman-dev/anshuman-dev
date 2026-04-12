@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Building claude-arcade — Anshuman</title>
+  <link rel="icon" href="../../favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <style>
+    :root {
+      --bg:         #0d0d0d;
+      --text:       #e8e8e8;
+      --text-muted: #888;
+      --accent:     #C08552;
+      --border:     #222;
+      --surface:    #161616;
+    }
+
+    [data-theme="light"] {
+      --bg:         #f9f9f7;
+      --text:       #1a1a1a;
+      --text-muted: #666;
+      --accent:     #a06030;
+      --border:     #e0e0e0;
+      --surface:    #f0f0ee;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .nav-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 400;
+      text-decoration: none;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+    .theme-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      border-radius: 6px;
+      transition: color 0.2s;
+    }
+    .theme-btn:hover { color: var(--text); }
+
+    .article {
+      max-width: 660px;
+      margin: 0 auto;
+      padding: 72px 40px 120px;
+    }
+
+    .article-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .article-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 48px;
+    }
+
+    .article-body p {
+      font-size: 0.9375rem;
+      line-height: 1.85;
+      color: var(--text);
+      margin-bottom: 24px;
+      font-weight: 300;
+    }
+
+    .article-body h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 48px 0 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .article-body h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text);
+      margin: 32px 0 12px;
+    }
+
+    .article-body a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: opacity 0.2s;
+    }
+    .article-body a:hover { opacity: 0.7; }
+
+    .article-body strong {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .article-body em {
+      font-style: italic;
+      color: var(--text-muted);
+    }
+
+    .article-body blockquote {
+      border-left: 2px solid var(--accent);
+      padding: 4px 0 4px 20px;
+      margin: 32px 0;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .article-body blockquote p {
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    .article-body code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      background: var(--surface);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .article-body pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px;
+      overflow-x: auto;
+      margin: 28px 0;
+    }
+
+    .article-body pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.8125rem;
+      color: var(--text);
+    }
+
+    .article-body hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    .article-footer {
+      margin-top: 80px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    .article-footer a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-tabs">
+      <a href="../../" class="nav-tab">me</a>
+      <a href="../../build/" class="nav-tab">build</a>
+      <a href="../../write/" class="nav-tab active">write</a>
+      <a href="../../gallery/" class="nav-tab">gallery</a>
+    </div>
+    <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
+      <svg id="icon-light" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="icon-dark" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </nav>
+
+  <main class="article">
+
+    <p class="article-meta">April 2026 &nbsp;·&nbsp; Engineering</p>
+    <h1 class="article-title">I built a terminal arcade that plays games while Claude thinks</h1>
+
+    <div class="article-body">
+
+      <p>
+        The idea was simple and a little absurd: what if, every time Claude Code was running a tool or thinking through a task, a mini-game popped up in your terminal? Not an app. Not a tab. Right there in the same terminal where your code lives — play for a few seconds, Claude finishes, game disappears.
+      </p>
+
+      <p>
+        I called it <a href="https://github.com/anshuman-dev/claude-arcade" target="_blank">claude-arcade</a>. It's a Python package you install with <code>pipx install claude-arcade</code>, and it currently ships three games: Bird Hunt, Pong, and Road Racer. This is the story of how it got built, what broke along the way, and what I learned.
+      </p>
+
+      <hr>
+
+      <h2>The idea</h2>
+
+      <p>
+        I use Claude Code a lot. It's genuinely good at long multi-step tasks — refactoring, writing tests, debugging build failures. But those tasks take time, and I found myself context-switching: checking a Slack message, opening Twitter, losing the thread. The downtime wasn't the problem. The aimless drift was.
+      </p>
+
+      <p>
+        I wanted something that kept me in the terminal mentally, even when Claude was doing the work. A game felt right — something you could pick up for fifteen seconds and put down cleanly. The constraint was interesting too: it had to live entirely in the terminal, using nothing but ASCII/Unicode characters, with no external dependencies, installable with a single command.
+      </p>
+
+      <h2>How Claude Code hooks work</h2>
+
+      <p>
+        Claude Code has a hooks system. You can register shell commands that fire on specific events — <code>PreToolUse</code> (before Claude runs a tool), <code>PostToolUse</code> (after), and <code>Stop</code> (when Claude finishes). These live in <code>~/.claude/settings.json</code>.
+      </p>
+
+      <p>
+        The plan: on <code>PreToolUse</code>, start a game. On <code>PostToolUse</code> and <code>Stop</code>, stop it. The game process needed to be completely independent of Claude's process — it couldn't block Claude, couldn't read from the same stdin, and had to clean up without leaving any mess behind.
+      </p>
+
+      <p>
+        The communication mechanism I landed on was the simplest possible thing: a stop file. When the hook fires to stop the game, it writes a file to <code>/tmp/.claude-arcade-stop</code>. The game loop checks for that file every frame. When it sees it, it deletes the file and exits cleanly. No sockets, no signals (well, signals too for good measure), just a file on disk.
+      </p>
+
+      <h2>The terminal access problem</h2>
+
+      <p>
+        Here's something I didn't anticipate: when a hook fires, Claude Code has already captured stdin and stdout. The hook subprocess inherits those — which means you can't just call <code>curses.wrapper()</code> and get a working terminal. It fails immediately with <code>[Errno 6] Device not configured</code>.
+      </p>
+
+      <p>
+        The fix involves <code>/dev/tty</code>. On Unix systems, <code>/dev/tty</code> is a direct path to the terminal attached to the process, bypassing whatever redirection is in place. You open it, then <code>dup2</code> the file descriptor onto stdin, stdout, and stderr before initializing curses:
+      </p>
+
+      <pre><code>tty_fd = os.open("/dev/tty", os.O_RDWR)
+for fd in (0, 1, 2):
+    os.dup2(tty_fd, fd)
+if tty_fd > 2:
+    os.close(tty_fd)</code></pre>
+
+      <p>
+        When even that fails — some terminal emulators don't expose <code>/dev/tty</code> reliably — the fallback is to use <code>osascript</code> on macOS to open a fresh Terminal.app or iTerm2 window and run the game there. Less seamless, but it works.
+      </p>
+
+      <h2>Game one: Bird Hunt</h2>
+
+      <p>
+        I started with something visually interesting — birds flying across the screen, shot with a crosshair. The entire visual is Unicode block characters. A sparrow looks like this:
+      </p>
+
+      <pre><code>frames_r: ["▄▀  ", "*██>"]   # wings up
+          ["▀▄  ", "*██>"]   # wings down</code></pre>
+
+      <p>
+        Three bird types — Sparrow, Seagull, Pterodactyl — each with different speeds, sizes, and point values. The crosshair moves with arrow keys, spacebar shoots. Birds animate between two frames at different rates depending on type. The whole thing runs in a fixed 30 FPS loop using a timestep accumulator rather than <code>time.sleep(0.033)</code> — the latter drifts, especially under load.
+      </p>
+
+      <p>
+        The fixed timestep pattern looks like this: you track real elapsed time, accumulate it, and consume it in fixed <code>FRAME_DT</code>-sized chunks. Physics and game logic run on those fixed steps regardless of how fast the CPU is running. Rendering happens once per pass. It gives you consistent, deterministic behavior even when frames occasionally take longer.
+      </p>
+
+      <h2>Game two: Pong — and the problem of an unbeatable CPU</h2>
+
+      <p>
+        Pong seemed obvious as game two. Paddle, ball, score. The implementation came together fast — the hard part wasn't the mechanics, it was the AI.
+      </p>
+
+      <p>
+        My first version of the CPU paddle tracked the ball position perfectly every frame. It never missed. I tried capping its speed — it still never missed, it just got there by the last possible moment. The problem is that a CPU with perfect information is effectively unbeatable no matter how slow you make it, because it always knows exactly where the ball will be.
+      </p>
+
+      <p>
+        The fix required making the CPU <em>imperfect</em> in a realistic way. I ended up combining four techniques:
+      </p>
+
+      <p>
+        <strong>Reaction delay.</strong> The CPU doesn't respond to the ball's position immediately. It has a 280ms window of inertia before it starts moving. This mirrors human reaction time and creates natural windows where the ball slips past.
+      </p>
+
+      <p>
+        <strong>Positional error.</strong> The CPU aims for the ball's position plus a random offset that scales with ball speed. Fast balls → more error. The paddle often overshoots or undershoots slightly.
+      </p>
+
+      <p>
+        <strong>Blind spot.</strong> When the ball is moving away from the CPU, it stops tracking entirely. It just holds position. This means a return shot to the opposite corner often catches it flatfooted.
+      </p>
+
+      <p>
+        <strong>Speed gap.</strong> The player moves at 22 characters/second. The CPU is capped at 12. No matter how well the CPU reads the ball, it physically can't cover the full paddle height in time if you hit a wide enough angle.
+      </p>
+
+      <p>
+        The combination makes the CPU feel like a real opponent — competent enough to return most shots, but genuinely beatable with patience and placement.
+      </p>
+
+      <h2>The nested curses bug</h2>
+
+      <p>
+        For a while, <code>claude-arcade play</code> would show the game menu, you'd select a game, and it would just... exit. No error. No crash. Back to the terminal prompt.
+      </p>
+
+      <p>
+        The root cause was nested <code>curses.wrapper()</code> calls. The menu ran inside one <code>curses.wrapper()</code>. When a game was selected, the code called <code>curses.wrapper(game_fn)</code> again. The inner wrapper called <code>endwin()</code> when it finished, tearing down the entire curses session — including the outer one. The terminal state was corrupted. The outer wrapper then returned, thinking everything was fine.
+      </p>
+
+      <p>
+        The fix: one <code>curses.wrapper()</code> per process, period. The menu and the game both receive the same <code>stdscr</code> object. The menu returns a game key, not a running game. The caller passes <code>stdscr</code> directly to the game function. No nested sessions, no competing cleanup.
+      </p>
+
+      <pre><code>def _inner(stdscr):
+    game_key = show_menu(stdscr)   # menu runs, returns key
+    if game_key is None:
+        return
+    fn = _game_fn(game_key)
+    stdscr.clear()
+    fn(stdscr)                     # game runs in same session
+
+curses.wrapper(_inner)             # one session, always</code></pre>
+
+      <h2>The stale stop file bug</h2>
+
+      <p>
+        Another subtle bug: the first time you launched a game after a hook had run, the game would exit immediately. The second time it worked fine.
+      </p>
+
+      <p>
+        The stop file. When the hook fires to end a game, it writes <code>/tmp/.claude-arcade-stop</code>. If no game was running at that moment — maybe you quit manually before the hook fired — the file sits on disk. Next time you launch a game, the very first iteration of the game loop sees the file, deletes it, and breaks out. The game exits in under a frame.
+      </p>
+
+      <p>
+        The fix is simple: at the top of every game function, delete the stop file if it exists before entering the loop.
+      </p>
+
+      <h2>Game three: Road Racer</h2>
+
+      <p>
+        For the third game I wanted something visually richer — movement, speed, a sense of danger. A top-down road racer fit. Three lanes, oncoming traffic, increasing speed with no ceiling on difficulty.
+      </p>
+
+      <p>
+        The road is entirely Unicode. Grass is <code>▓</code>. Road edges are <code>║</code>. Lane dividers are <code>┊</code>, scrolling at a rate proportional to your current speed so the visual feedback of acceleration is immediate. Trees (<code>▲</code>) scroll in the grass strips at 60% of road speed, giving depth through parallax.
+      </p>
+
+      <p>
+        Enemy cars are five characters wide and four rows tall. There are three types — sedan, truck, sports car — each a different colour, each with a distinct sprite made entirely of block characters:
+      </p>
+
+      <pre><code>Sedan  (red):    ["▐▄▓▄▌", "▐▓░▓▌", "▐▓░▓▌", "▐▀▓▀▌"]
+Truck  (yellow): ["▐███▌", "▐█ █▌", "▐█ █▌", "▐███▌"]
+Sports (white):  ["▐▄▄▄▌", "▐░░░▌", "▐░░░▌", "▐▀▀▀▌"]</code></pre>
+
+      <p>
+        Lane changes are animated — the player car slides smoothly across at 22 columns/second rather than teleporting. The smooth slide comes from clamping a per-frame step toward the target position: <code>player_x = target if abs(diff) &lt;= step else player_x + copysign(step, diff)</code>. Simple, but it makes the game feel responsive rather than mechanical.
+      </p>
+
+      <p>
+        After a collision you get two seconds of invincibility — the car flashes by toggling visibility eight times per second (<code>int(invincible * 8) % 2 == 0</code>). It's a classic pattern from arcade games and it works because it communicates the invincibility window clearly without any UI chrome.
+      </p>
+
+      <h2>Packaging and distribution</h2>
+
+      <p>
+        The package uses <code>hatchling</code> as the build backend and is distributed on PyPI. One design constraint I cared about: the GitHub repo structure should be readable. Each game lives in its own folder under <code>claude_arcade/games/</code> with its own <code>README.md</code> describing controls, sprites, and mechanics. Someone landing on the repo should be able to understand what each game is without reading code.
+      </p>
+
+      <p>
+        I ran into the classic PyPI 403 on first upload — wrong API token format. The token has to include the <code>pypi-</code> prefix and be entered exactly. After that, <code>python3 -m build && twine upload dist/*</code> is all it takes.
+      </p>
+
+      <p>
+        The splash screen — the <strong>CLAUDE ARCADE</strong> title that appears when you run <code>claude-arcade play</code> — is rendered using a hand-built 5×5 block font. Each letter is defined as five rows of five characters using only <code>█</code>. It's impractical and I enjoyed making it.
+      </p>
+
+      <h2>What's next</h2>
+
+      <p>
+        Three games in, the foundation is solid. Each game has its own folder, its own README, its own difficulty curve. The hook integration works. The package is on PyPI.
+      </p>
+
+      <p>
+        The games I'm thinking about next: a snake variant, a mini roguelike (one floor, procedural rooms, one life), and something that uses your actual shell history as content — the idea of a game that knows what commands you run is interesting. A JavaScript port is also on the table once there are four or five Python games worth porting.
+      </p>
+
+      <p>
+        The constraint that made this fun to build was also what made it hard: no graphics library, no browser, no external dependencies. Just Python, curses, and Unicode. It forces you to think carefully about what you can represent with a handful of block characters and how much game feel you can create with timing alone.
+      </p>
+
+      <hr>
+
+      <p>
+        The source is on <a href="https://github.com/anshuman-dev/claude-arcade" target="_blank">GitHub</a>. Install it with <code>pipx install claude-arcade</code>, run <code>claude-arcade setup</code> to wire up the hooks, and the next time Claude is thinking you'll have something to do.
+      </p>
+
+    </div>
+
+    <div class="article-footer">
+      <a href="../../write/">← back to writing</a>
+    </div>
+
+  </main>
+
+  <script>
+    var toggle = document.getElementById('themeToggle');
+    var iconLight = document.getElementById('icon-light');
+    var iconDark = document.getElementById('icon-dark');
+
+    function applyTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+      if (t === 'dark') {
+        iconLight.style.display = 'none';
+        iconDark.style.display = 'block';
+      } else {
+        iconLight.style.display = 'block';
+        iconDark.style.display = 'none';
+      }
+    }
+
+    applyTheme(localStorage.getItem('theme') || 'dark');
+
+    toggle.addEventListener('click', function() {
+      var current = document.documentElement.getAttribute('data-theme');
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+  </script>
+
+</body>
+</html>
