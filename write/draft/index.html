@@ -255,6 +255,51 @@
 
     @media (max-width: 1080px) { .toc { display: none; } }
 
+    /* ── Reading progress ────────────────────────────────────── */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 2px;
+      background: var(--accent);
+      z-index: 200;
+      transition: width 0.05s linear;
+    }
+
+    .progress-ring-wrap {
+      position: fixed;
+      top: 148px;
+      right: max(16px, calc(50% - 330px - 24px - 56px));
+    }
+
+    .progress-ring-bg {
+      fill: none;
+      stroke: var(--border);
+      stroke-width: 3;
+    }
+
+    .progress-ring-fill {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 150.8;
+      stroke-dashoffset: 150.8;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      transition: stroke-dashoffset 0.25s ease-out;
+    }
+
+    .progress-ring-pct {
+      font-size: 11px;
+      fill: var(--text-muted);
+      font-family: Georgia, 'Times New Roman', serif;
+      font-style: italic;
+    }
+
+    @media (max-width: 1080px) { .progress-ring-wrap { display: none; } }
+
     /* ── Responsive ──────────────────────────────────────────── */
     @media (max-width: 600px) {
       nav { padding: 0 20px; }
@@ -264,6 +309,8 @@
   </style>
 </head>
 <body>
+
+  <div class="progress-bar" id="progressBar"></div>
 
   <nav>
     <div class="nav-tabs">
@@ -284,6 +331,14 @@
       </svg>
     </button>
   </nav>
+
+  <div class="progress-ring-wrap">
+    <svg width="60" height="60" viewBox="0 0 60 60">
+      <circle class="progress-ring-bg" cx="30" cy="30" r="24"/>
+      <circle class="progress-ring-fill" id="progressCircle" cx="30" cy="30" r="24"/>
+      <text class="progress-ring-pct" id="progressPct" x="30" y="30" text-anchor="middle" dominant-baseline="middle">0%</text>
+    </svg>
+  </div>
 
   <aside class="toc" id="toc">
     <span class="toc-label">On this page</span>
@@ -389,6 +444,23 @@
       }, { rootMargin: '-10% 0px -80% 0px' });
 
       headings.forEach(function(h) { observer.observe(h); });
+    })();
+
+    // Reading progress
+    (function() {
+      var bar = document.getElementById('progressBar');
+      var pct = document.getElementById('progressPct');
+      var circle = document.getElementById('progressCircle');
+      var circumference = 150.8;
+
+      window.addEventListener('scroll', function() {
+        var scrolled = window.scrollY;
+        var total = document.documentElement.scrollHeight - window.innerHeight;
+        var progress = total > 0 ? Math.round((scrolled / total) * 100) : 0;
+        bar.style.width = progress + '%';
+        pct.textContent = progress + '%';
+        circle.style.strokeDashoffset = circumference * (1 - progress / 100);
+      }, { passive: true });
     })();
   </script>
 
