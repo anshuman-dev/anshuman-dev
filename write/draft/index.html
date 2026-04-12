@@ -216,6 +216,45 @@
     }
     .article-footer a:hover { text-decoration: underline; }
 
+    /* ── Table of contents ───────────────────────────────────── */
+    .toc {
+      position: fixed;
+      top: 148px;
+      left: max(16px, calc(50% - 330px - 24px - 152px));
+      width: 152px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .toc-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    .toc-item {
+      display: block;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 4px 0 4px 10px;
+      border-left: 1px solid var(--border);
+      margin-bottom: 2px;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toc-item:hover { color: var(--text); border-left-color: var(--text-muted); }
+    .toc-item.active { color: var(--accent); border-left-color: var(--accent); }
+
+    @media (max-width: 1080px) { .toc { display: none; } }
+
     /* ── Responsive ──────────────────────────────────────────── */
     @media (max-width: 600px) {
       nav { padding: 0 20px; }
@@ -245,6 +284,10 @@
       </svg>
     </button>
   </nav>
+
+  <aside class="toc" id="toc">
+    <span class="toc-label">On this page</span>
+  </aside>
 
   <article class="article">
 
@@ -318,6 +361,35 @@
       var current = document.documentElement.getAttribute('data-theme');
       applyTheme(current === 'dark' ? 'light' : 'dark');
     });
+
+    // Build TOC from h2s
+    (function() {
+      var toc = document.getElementById('toc');
+      var headings = document.querySelectorAll('.article-body h2');
+
+      headings.forEach(function(h, i) {
+        if (!h.id) h.id = 'section-' + i;
+        var a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.className = 'toc-item';
+        a.textContent = h.textContent;
+        toc.appendChild(a);
+      });
+
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            document.querySelectorAll('.toc-item').forEach(function(a) {
+              a.classList.remove('active');
+            });
+            var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+            if (active) active.classList.add('active');
+          }
+        });
+      }, { rootMargin: '-10% 0px -80% 0px' });
+
+      headings.forEach(function(h) { observer.observe(h); });
+    })();
   </script>
 
 </body>
