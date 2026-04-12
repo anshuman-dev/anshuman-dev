@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Building claude-arcade — Anshuman</title>
+  <title>Playing games while your AI Agent thinks - Claude Arcade — Anshuman</title>
   <link rel="icon" href="../../favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -218,9 +218,102 @@
       text-decoration: underline;
       text-underline-offset: 3px;
     }
+
+    /* ── Reading progress bar ────────────────────────────────── */
+    .progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 0%;
+      height: 2px;
+      background: var(--accent);
+      z-index: 200;
+      transition: width 0.05s linear;
+    }
+
+    /* ── TOC ─────────────────────────────────────────────────── */
+    .toc {
+      position: fixed;
+      top: 148px;
+      left: max(16px, calc(50% - 330px - 24px - 152px));
+      width: 152px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .toc-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    .toc-item {
+      display: block;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 4px 0 4px 10px;
+      border-left: 1px solid var(--border);
+      margin-bottom: 2px;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .toc-item:hover { color: var(--text); border-left-color: var(--text-muted); }
+    .toc-item.active { color: var(--accent); border-left-color: var(--accent); }
+
+    /* ── Progress ring ───────────────────────────────────────── */
+    .progress-ring-wrap {
+      position: fixed;
+      top: 148px;
+      right: max(16px, calc(50% - 330px - 24px - 56px));
+    }
+
+    .progress-ring-bg {
+      fill: none;
+      stroke: var(--border);
+      stroke-width: 3;
+    }
+
+    .progress-ring-fill {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 150.8;
+      stroke-dashoffset: 150.8;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      transition: stroke-dashoffset 0.25s ease-out;
+    }
+
+    .progress-ring-pct {
+      font-size: 11px;
+      fill: var(--text-muted);
+      font-family: Georgia, 'Times New Roman', serif;
+      font-style: italic;
+    }
+
+    @media (max-width: 1080px) {
+      .toc { display: none; }
+      .progress-ring-wrap { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 20px; }
+      .article { padding: 48px 20px 80px; }
+      .article-title { font-size: 1.4rem; }
+    }
   </style>
 </head>
 <body>
+
+  <div class="progress-bar" id="progressBar"></div>
 
   <nav>
     <div class="nav-tabs">
@@ -242,10 +335,22 @@
     </button>
   </nav>
 
+  <aside class="toc" id="toc">
+    <span class="toc-label">On this page</span>
+  </aside>
+
+  <div class="progress-ring-wrap">
+    <svg width="60" height="60" viewBox="0 0 60 60">
+      <circle class="progress-ring-bg" cx="30" cy="30" r="24"/>
+      <circle class="progress-ring-fill" id="progressCircle" cx="30" cy="30" r="24"/>
+      <text class="progress-ring-pct" id="progressPct" x="30" y="30" text-anchor="middle" dominant-baseline="middle">0%</text>
+    </svg>
+  </div>
+
   <main class="article">
 
     <p class="article-meta">April 2026 &nbsp;·&nbsp; Engineering</p>
-    <h1 class="article-title">I built a terminal arcade that plays games while Claude thinks</h1>
+    <h1 class="article-title">Playing games while your AI Agent thinks - Claude Arcade</h1>
 
     <div class="article-body">
 
@@ -483,6 +588,50 @@ Sports (white):  ["▐▄▄▄▌", "▐░░░▌", "▐░░░▌", "▐�
       var current = document.documentElement.getAttribute('data-theme');
       applyTheme(current === 'dark' ? 'light' : 'dark');
     });
+
+    // Build TOC
+    (function() {
+      var toc = document.getElementById('toc');
+      var headings = document.querySelectorAll('.article-body h2');
+
+      headings.forEach(function(h, i) {
+        if (!h.id) h.id = 'section-' + i;
+        var a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.className = 'toc-item';
+        a.textContent = h.textContent;
+        toc.appendChild(a);
+      });
+
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            document.querySelectorAll('.toc-item').forEach(function(a) { a.classList.remove('active'); });
+            var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+            if (active) active.classList.add('active');
+          }
+        });
+      }, { rootMargin: '-10% 0px -80% 0px' });
+
+      headings.forEach(function(h) { observer.observe(h); });
+    })();
+
+    // Reading progress
+    (function() {
+      var bar = document.getElementById('progressBar');
+      var pct = document.getElementById('progressPct');
+      var circle = document.getElementById('progressCircle');
+      var circumference = 150.8;
+
+      window.addEventListener('scroll', function() {
+        var scrolled = window.scrollY;
+        var total = document.documentElement.scrollHeight - window.innerHeight;
+        var progress = total > 0 ? Math.round((scrolled / total) * 100) : 0;
+        bar.style.width = progress + '%';
+        pct.textContent = progress + '%';
+        circle.style.strokeDashoffset = circumference * (1 - progress / 100);
+      }, { passive: true });
+    })();
   </script>
 
 </body>
