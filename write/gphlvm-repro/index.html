@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reproducing a hyperbolic geometry paper from scratch — Anshuman</title>
+  <link rel="icon" href="../../favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <style>
+    :root {
+      --bg:         #0d0d0d;
+      --text:       #e8e8e8;
+      --text-muted: #888;
+      --accent:     #C08552;
+      --border:     #222;
+      --surface:    #161616;
+    }
+
+    [data-theme="light"] {
+      --bg:         #f9f9f7;
+      --text:       #1a1a1a;
+      --text-muted: #666;
+      --accent:     #a06030;
+      --border:     #e0e0e0;
+      --surface:    #f0f0ee;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    .nav-tabs { display: flex; align-items: center; gap: 2px; }
+
+    .nav-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 400;
+      text-decoration: none;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+    .theme-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); padding: 6px;
+      display: flex; align-items: center;
+      border-radius: 6px; transition: color 0.2s;
+    }
+    .theme-btn:hover { color: var(--text); }
+
+    .article {
+      max-width: 660px;
+      margin: 0 auto;
+      padding: 72px 40px 120px;
+    }
+
+    .article-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .article-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 48px;
+    }
+
+    .article-body p {
+      font-size: 0.9375rem;
+      line-height: 1.85;
+      color: var(--text);
+      margin-bottom: 24px;
+      font-weight: 300;
+    }
+
+    .article-body h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 48px 0 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .article-body h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text);
+      margin: 32px 0 12px;
+    }
+
+    .article-body a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: opacity 0.2s;
+    }
+    .article-body a:hover { opacity: 0.7; }
+
+    .article-body strong { font-weight: 700; color: var(--text); }
+
+    .article-body em { font-style: italic; color: var(--text-muted); }
+
+    .article-body blockquote {
+      border-left: 2px solid var(--accent);
+      padding: 4px 0 4px 20px;
+      margin: 32px 0;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    .article-body blockquote p { color: var(--text-muted); margin-bottom: 0; }
+
+    .article-body code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      background: var(--surface);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .article-body pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px;
+      overflow-x: auto;
+      margin: 28px 0;
+    }
+    .article-body pre code {
+      background: none; border: none; padding: 0;
+      font-size: 0.8125rem; color: var(--text);
+    }
+
+    .article-body hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    .article-body img {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin: 8px 0;
+    }
+
+    .fig-caption {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 10px;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      font-size: 0.8125rem;
+    }
+    .results-table th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--surface);
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+    .results-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: #ccc;
+      font-weight: 300;
+    }
+    .results-table tr:last-child td { border-bottom: none; }
+    .win { color: #7ecfa4; font-weight: 700; }
+
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin: 28px 0;
+    }
+    .callout p { margin-bottom: 0; color: var(--text-muted); font-size: 0.875rem; }
+
+    .article-footer {
+      margin-top: 80px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+    .article-footer a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+    .progress-bar {
+      position: fixed; top: 0; left: 0;
+      width: 0%; height: 2px;
+      background: var(--accent);
+      z-index: 200; transition: width 0.05s linear;
+    }
+
+    .toc {
+      position: fixed;
+      top: 148px;
+      left: max(16px, calc(50% - 330px - 24px - 152px));
+      width: 152px;
+      display: flex; flex-direction: column;
+    }
+    .toc-label {
+      font-size: 0.65rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: 10px; opacity: 0.5;
+    }
+    .toc-item {
+      display: block; font-size: 0.7rem; line-height: 1.5;
+      color: var(--text-muted); text-decoration: none;
+      padding: 4px 0 4px 10px;
+      border-left: 1px solid var(--border);
+      margin-bottom: 2px;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .toc-item:hover { color: var(--text); border-left-color: var(--text-muted); }
+    .toc-item.active { color: var(--accent); border-left-color: var(--accent); }
+
+    .progress-ring-wrap {
+      position: fixed;
+      top: 148px;
+      right: max(16px, calc(50% - 330px - 24px - 56px));
+    }
+    .progress-ring-bg { fill: none; stroke: var(--border); stroke-width: 3; }
+    .progress-ring-fill {
+      fill: none; stroke: var(--accent); stroke-width: 3;
+      stroke-linecap: round; stroke-dasharray: 150.8; stroke-dashoffset: 150.8;
+      transform: rotate(-90deg); transform-origin: 50% 50%;
+      transition: stroke-dashoffset 0.25s ease-out;
+    }
+    .progress-ring-pct {
+      font-size: 11px; fill: var(--text-muted);
+      font-family: Georgia, 'Times New Roman', serif; font-style: italic;
+    }
+
+    @media (max-width: 1080px) { .toc { display: none; } .progress-ring-wrap { display: none; } }
+    @media (max-width: 600px) {
+      nav { padding: 0 20px; }
+      .article { padding: 48px 20px 80px; }
+      .article-title { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-bar" id="progressBar"></div>
+
+  <nav>
+    <div class="nav-tabs">
+      <a href="../../" class="nav-tab">me</a>
+      <a href="../../build/" class="nav-tab">build</a>
+      <a href="../../write/" class="nav-tab active">write</a>
+      <a href="../../gallery/" class="nav-tab">gallery</a>
+    </div>
+    <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
+      <svg id="icon-light" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="icon-dark" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </nav>
+
+  <aside class="toc" id="toc">
+    <span class="toc-label">On this page</span>
+  </aside>
+
+  <div class="progress-ring-wrap">
+    <svg width="60" height="60" viewBox="0 0 60 60">
+      <circle class="progress-ring-bg" cx="30" cy="30" r="24"/>
+      <circle class="progress-ring-fill" id="progressCircle" cx="30" cy="30" r="24"/>
+      <text class="progress-ring-pct" id="progressPct" x="30" y="30" text-anchor="middle" dominant-baseline="middle">0%</text>
+    </svg>
+  </div>
+
+  <main class="article">
+
+    <p class="article-meta">April 2026 &nbsp;·&nbsp; Research</p>
+    <h1 class="article-title">Reproducing a hyperbolic geometry paper from scratch</h1>
+
+    <div class="article-body">
+
+      <p>
+        I wanted to apply for a PhD under <a href="https://noemiejaquier.github.io/" target="_blank">Prof. Noémie Jaquier</a> at KTH, who works on geometric robot learning. The standard move is to email with a CV and a cover letter. I wanted to do something different: actually reproduce one of her papers and show up with working code.
+      </p>
+
+      <p>
+        The paper I picked was <a href="https://proceedings.mlr.press/v235/jaquier24a.html" target="_blank">Bringing Motion Taxonomies to Continuous Domains via GPLVM on Hyperbolic Manifolds</a>, published at ICML 2024. I implemented the core model from scratch, validated it on the paper's dataset, and built an interactive demo. This is the story of what I built, the math behind it, and what actually broke along the way.
+      </p>
+
+      <img src="training_evolution.gif" alt="Training evolution on Poincaré disk" style="margin-bottom: 8px;">
+      <p class="fig-caption">94 hand-grasp recordings arranging themselves on the Poincaré disk during training. The structure you see emerging is the taxonomy of grasps.</p>
+
+      <hr>
+
+      <h2>The problem the paper is solving</h2>
+
+      <p>
+        Robots need to understand motion. Not just replay it, but understand its structure well enough to generalize. If a robot has seen a tripod grasp 50 times, can it adapt that grasp to a new object? Can it understand that a tripod and a lateral pinch are more similar to each other than either is to a full power wrap?
+      </p>
+
+      <p>
+        That kind of structural knowledge exists in taxonomy trees. Researchers have organized hand grasps into hierarchies where nodes represent grasp families and leaves represent specific grasp types. The tree encodes relationships: some grasps are siblings, some are cousins, some are completely different branches. This is discrete, structured knowledge about motion.
+      </p>
+
+      <p>
+        The problem is that actual robot motion is continuous. Joint angles are floating point numbers. There is no tree in there. The question the paper asks is whether you can learn a continuous latent space that respects the discrete tree structure. A map of grasps where things that are taxonomically similar land near each other.
+      </p>
+
+      <p>
+        The answer depends entirely on the geometry of that latent space. And this is where it gets interesting.
+      </p>
+
+      <h2>Why the geometry of the space matters</h2>
+
+      <p>
+        Most dimensionality reduction just uses flat Euclidean space. You compress your data into 2D coordinates in a plane. That works well for data that has a roughly Euclidean structure. But trees are not Euclidean.
+      </p>
+
+      <p>
+        A tree branches exponentially. At depth 1 you have 2 nodes. At depth 2 you have 4. At depth 3 you have 8. The number of nodes grows exponentially with depth. Flat 2D space grows polynomially with radius. You cannot embed an exponentially growing structure into a polynomially growing space without severe distortion. Something has to get squished together.
+      </p>
+
+      <p>
+        Hyperbolic space is different. It is a curved space that grows exponentially with radius. Imagine a saddle surface that keeps curving away from you in every direction. The circumference of a circle of radius r in hyperbolic space is <code>2π sinh(r)</code>, which grows exponentially rather than linearly. Trees embed into hyperbolic space with provably low distortion. This is a mathematical theorem, not an approximation.
+      </p>
+
+      <p>
+        So if your data has tree structure, a hyperbolic latent space should represent it better. The paper tests this hypothesis on actual robot grasp data. I wanted to verify it myself.
+      </p>
+
+      <h2>The model</h2>
+
+      <p>
+        The model is a Gaussian Process Latent Variable Model, or GPLVM. The basic idea is that you learn latent positions X for your data points such that a Gaussian Process trained on X can predict the observed data Y. The latent positions have to be arranged so that nearby points in latent space produce similar observations.
+      </p>
+
+      <p>
+        What makes this paper's model specific is that X lives on the Lorentz hyperboloid rather than flat space. The Lorentz model is one way to represent hyperbolic space. Points live in a higher dimensional ambient space and satisfy a constraint: for a point x in R^(Q+1), the Minkowski inner product of x with itself equals -1. That inner product is defined as:
+      </p>
+
+      <pre><code>inner(x, y) = -x[0]*y[0] + x[1]*y[1] + ... + x[Q]*y[Q]</code></pre>
+
+      <p>
+        The geodesic distance between two points on the hyperboloid is:
+      </p>
+
+      <pre><code>d(x, y) = arccosh( -inner(x, y) )</code></pre>
+
+      <p>
+        The kernel that measures similarity between two latent points uses this distance:
+      </p>
+
+      <pre><code>k(x, y) = sigma^2 * exp( -d(x,y)^2 / (2 * beta^2) )</code></pre>
+
+      <p>
+        This is an RBF kernel but using hyperbolic geodesic distance instead of Euclidean distance. The whole kernel matrix is built from pairwise distances on the manifold. The training objective combines three terms:
+      </p>
+
+      <pre><code>maximise:   GP log-marginal-likelihood(Y | X)   # fit the joint angles
+          + wrapped-normal log-prior(X)           # regularise latent positions
+          - stress(X, D_tree)                     # match taxonomy distances</code></pre>
+
+      <p>
+        The stress term is what connects the continuous model to the discrete tree. It penalises the squared difference between pairwise distances in latent space and shortest-path distances in the taxonomy tree. High stress means the latent map is not respecting the tree. The optimizer is pushed to reduce it.
+      </p>
+
+      <h2>Building the Lorentz geometry from scratch</h2>
+
+      <p>
+        I did not use the authors' code. I wrote all the geometry myself, which is how I learned it properly.
+      </p>
+
+      <p>
+        The first tricky thing is the <code>arccosh</code> computation at the diagonal of the distance matrix. When you compute the distance from a point to itself, the inner product should give exactly -1, which means <code>-inner(x,x) = 1</code>, and <code>arccosh(1) = 0</code>. That is the correct answer. But floating point arithmetic means you sometimes get values slightly less than 1, and <code>arccosh</code> of anything less than 1 is NaN.
+      </p>
+
+      <p>
+        The standard fix is to clamp the argument: <code>arccosh(clamp(-inner, 1 + eps))</code>. But here is the subtle problem I ran into. With <code>eps = 1e-6</code>, the clamped value at the diagonal is not 1, it is <code>1 + 1e-6</code>. And <code>arccosh(1 + 1e-6)</code> is approximately <code>0.0014</code>, not zero. So the diagonal of the distance matrix has small nonzero values. This silently corrupts the stress loss and the kernel matrix.
+      </p>
+
+      <p>
+        The fix is to zero the diagonal explicitly after computing the distance matrix:
+      </p>
+
+      <pre><code>D = arccosh(clamp(-inner_products, 1 + 1e-6))
+D = D * (1 - eye(N))   # force diagonal to exactly zero</code></pre>
+
+      <p>
+        A related issue appeared in the log map, which computes the tangent vector pointing from one manifold point to another. When you call <code>log_map(x, x)</code> (same point), the direction vector has norm zero and you are dividing by it. The threshold I originally used to detect this case was <code>d &lt; 1e-7</code>, but because of the clamping the actual self-distance was around <code>1.4e-3</code>. The threshold was below the actual value, so the guard never triggered and you got NaN. Changing it to <code>d &lt; 1e-2</code> fixed it.
+      </p>
+
+      <h2>Riemannian optimization</h2>
+
+      <p>
+        Standard gradient descent does not work on manifolds. If you take a gradient step on a point constrained to the hyperboloid, you move off the hyperboloid. The new point is no longer a valid hyperbolic point.
+      </p>
+
+      <p>
+        The solution is to use a Riemannian optimizer that respects the manifold geometry. I used <a href="https://geoopt.readthedocs.io/" target="_blank">geoopt</a>, which provides a <code>ManifoldParameter</code> type and a <code>RiemannianAdam</code> optimizer. Gradient steps are computed in the tangent space at the current point and then mapped back onto the manifold using the exponential map. The latent positions stay on the hyperboloid throughout training.
+      </p>
+
+      <p>
+        For people running without geoopt, I also implemented a fallback: optimize the spatial coordinates (the non-time component) directly and project back to the manifold at each step. It is less principled but it works and gives similar results.
+      </p>
+
+      <h2>The two-phase training problem</h2>
+
+      <p>
+        My first attempts produced a result where the hyperbolic model was barely better than the Euclidean baseline on taxonomy metrics. The GP log-likelihood was better (the hyperbolic model fit the joint angles better) but the latent points were all clustered near the origin of the Poincaré disk. The taxonomy structure was not there.
+      </p>
+
+      <p>
+        The problem was initialization order. When you start training the joint objective from the beginning, the GP term dominates. It has a much larger scale than the stress term. The optimizer learns to fit the joint angles without ever developing the taxonomy structure in the latent space. By the time the stress term starts mattering, the latent positions are already locked into a configuration that is hard to escape.
+      </p>
+
+      <p>
+        The fix is a two-phase training schedule. In phase one, you optimize only the stress term, with no GP. The latent points spread across the manifold, arranging themselves to match the taxonomy tree distances. They develop structure. Then in phase two, you switch to the joint objective. The GP couples the latent positions to the observed joint angles, but from a starting point that already has good taxonomy structure.
+      </p>
+
+      <img src="loss_curves.png" alt="Training loss curves">
+      <p class="fig-caption">The spike at iteration 300 is the phase transition. GP coupling switches on and the loss jumps before converging. The stress is higher in phase two because the GP is now pulling the latent points toward what fits the joint angles, not just what fits the tree.</p>
+
+      <p>
+        After adding the warmup, the results were clearly better:
+      </p>
+
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Hyperbolic</th>
+            <th>Euclidean</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Mean distance error (lower is better)</td>
+            <td class="win">0.274</td>
+            <td>0.307</td>
+          </tr>
+          <tr>
+            <td>Taxonomic coherence k=5 (lower is better)</td>
+            <td class="win">2.74</td>
+            <td>3.23</td>
+          </tr>
+          <tr>
+            <td>GP log-likelihood (higher is better)</td>
+            <td class="win">-1942</td>
+            <td>-1949</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        Hyperbolic wins on all three. Without the two-phase warmup, it only won on GP log-likelihood. The warmup is what makes the geometry matter.
+      </p>
+
+      <h2>What the results look like</h2>
+
+      <img src="stress_histogram.png" alt="Stress error histogram">
+      <p class="fig-caption">Distribution of absolute distance errors for all 4,371 grasp pairs. The hyperbolic distribution (blue) is shifted left, meaning fewer pairs have large errors. The right panel breaks this down by taxonomy distance bucket.</p>
+
+      <p>
+        The histogram is the clearest way to see what is happening. For every pair of grasps, we measure how different the latent distance is from what the taxonomy tree says it should be. The hyperbolic model consistently produces smaller errors, especially at medium-range distances where the tree structure matters most.
+      </p>
+
+      <img src="poincare_annotated.png" alt="Annotated Poincaré disk">
+      <p class="fig-caption">Final latent positions on the Poincaré disk. The unit circle is the boundary (you can never reach it). Each point is one of 94 grasp recordings, coloured by class and labelled at the class centroid.</p>
+
+      <p>
+        The Poincaré disk is the 2D projection of the hyperboloid. A point x on the hyperboloid maps to a point in the unit disk via <code>p = x[1:] / (1 + x[0])</code>. The origin of the disk corresponds to the north pole of the hyperboloid, and the boundary corresponds to infinity. Grasp classes that are taxonomically related cluster together spatially. You can see the structure that the stress warmup built.
+      </p>
+
+      <img src="comparison.png" alt="Comparison figure">
+      <p class="fig-caption">Full comparison: Poincaré disk (top left) vs Euclidean latent space (top right), and the corresponding distance error heatmaps sorted by class label. Darker blue means smaller error.</p>
+
+      <h2>Numerical fixes that were not obvious</h2>
+
+      <p>
+        Two issues with gradients took me time to track down.
+      </p>
+
+      <p>
+        In the Euclidean model, pairwise distances involve a <code>sqrt</code>. The gradient of <code>sqrt(x)</code> at <code>x=0</code> is infinite. At the diagonal of the distance matrix, every point has distance zero to itself. So computing <code>sqrt(sq_dist)</code> and then zeroing the diagonal gives you infinite gradients at the diagonal positions before they are zeroed. PyTorch propagates NaN from those positions. The fix is to add a small epsilon before the sqrt and zero the diagonal after:
+      </p>
+
+      <pre><code>D_latent = sqrt(sq_dist + 1e-10)
+D_latent = D_latent * (1 - eye(N))   # zero diagonal</code></pre>
+
+      <p>
+        The other issue was the Cholesky decomposition of the kernel matrix. Early in training, the kernel parameters are not well calibrated and the kernel matrix can be nearly singular. Cholesky fails on singular matrices. The fix is adaptive jitter: try to decompose, if it fails add a small diagonal term and retry. I implemented this with jitter increasing from <code>1e-6</code> to <code>10.0</code> across six attempts. It never needed more than the second or third level, but having the full range there meant training never crashed on a bad initialization.
+      </p>
+
+      <h2>74 tests</h2>
+
+      <p>
+        I wrote tests before I was confident the math was right. This turned out to be important. The tests caught the diagonal arccosh issue before I would have noticed it in the training curves. They also caught a test isolation bug where random state from one test was affecting another, making Cholesky fail intermittently depending on the order tests ran.
+      </p>
+
+      <p>
+        The test suite covers every mathematical component: manifold constraint verification (does every point satisfy <code>inner(x,x) = -1</code>?), inner product and distance computation, exp and log map roundtrips, Poincaré projection and back, PCA initialization, the wrapped normal prior, both kernels, GP marginal likelihood, stress loss, and end-to-end convergence for both models.
+      </p>
+
+      <pre><code>pytest tests/
+
+tests/test_lorentz.py   29 tests
+tests/test_kernels.py   13 tests
+tests/test_data.py      15 tests
+tests/test_gplvm.py     17 tests
+
+74 passed in 1.38s</code></pre>
+
+      <h2>Try it yourself</h2>
+
+      <p>
+        The interactive demo is live on <a href="https://huggingface.co/spaces/singhanshuman/gphlvm-repo" target="_blank">Hugging Face Spaces</a>. You can select specific grasp classes and watch them highlight on the Poincaré disk. The comparison tab shows both models side by side. The full code is on <a href="https://github.com/anshuman-dev/gphlvm-repro" target="_blank">GitHub</a>.
+      </p>
+
+      <div class="callout">
+        <p>The demo lets you select any of the 19 grasp classes and see where they live on the hyperbolic disk relative to each other. Try selecting Tripod and Lateral, then compare with Wrap. The distances in the disk should reflect the taxonomy.</p>
+      </div>
+
+      <p>
+        To run training yourself:
+      </p>
+
+      <pre><code>git clone https://github.com/anshuman-dev/gphlvm-repro
+cd gphlvm-repro
+pip install torch numpy scipy networkx matplotlib geoopt pytest
+
+python scripts/train.py --n-iter 1000 --stress-scale 5.0 --stress-warmup 300
+python scripts/animate.py     # generates the training gif
+python scripts/make_figures.py</code></pre>
+
+      <h2>What this reproduction does not cover</h2>
+
+      <p>
+        The full paper also demonstrates motion generation. Once you have learned a hyperbolic latent space that respects the taxonomy, you can sample new points in that space and decode them back through the GP to get novel motion trajectories. The decoding is a GP prediction: given a new latent position, what joint angles should the robot produce?
+      </p>
+
+      <p>
+        I focused on the structure-learning part because that is where the geometry matters. The generation side would be a natural extension. The decoder is already implicit in the trained GP.
+      </p>
+
+      <hr>
+
+      <p>
+        The thing I kept noticing while building this is how much the geometry question matters and how rarely it gets asked. Most ML defaults to Euclidean space not because Euclidean is right but because it is the default. For data that has tree structure, hierarchical structure, or any structure that does not live naturally in a flat plane, the geometry of the latent space is a real design decision. Hyperbolic space is one answer. There are others. But at least asking the question seems worth it.
+      </p>
+
+    </div>
+
+    <div class="article-footer">
+      <a href="../../write/">← back to writing</a>
+    </div>
+
+  </main>
+
+  <script>
+    var toggle = document.getElementById('themeToggle');
+    var iconLight = document.getElementById('icon-light');
+    var iconDark = document.getElementById('icon-dark');
+
+    function applyTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+      if (t === 'dark') { iconLight.style.display = 'none'; iconDark.style.display = 'block'; }
+      else { iconLight.style.display = 'block'; iconDark.style.display = 'none'; }
+    }
+
+    applyTheme(localStorage.getItem('theme') || 'dark');
+    toggle.addEventListener('click', function() {
+      applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    (function() {
+      var toc = document.getElementById('toc');
+      var headings = document.querySelectorAll('.article-body h2');
+      headings.forEach(function(h, i) {
+        if (!h.id) h.id = 'section-' + i;
+        var a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.className = 'toc-item';
+        a.textContent = h.textContent;
+        toc.appendChild(a);
+      });
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            document.querySelectorAll('.toc-item').forEach(function(a) { a.classList.remove('active'); });
+            var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+            if (active) active.classList.add('active');
+          }
+        });
+      }, { rootMargin: '-10% 0px -80% 0px' });
+      headings.forEach(function(h) { observer.observe(h); });
+    })();
+
+    (function() {
+      var bar = document.getElementById('progressBar');
+      var pct = document.getElementById('progressPct');
+      var circle = document.getElementById('progressCircle');
+      var circumference = 150.8;
+      window.addEventListener('scroll', function() {
+        var scrolled = window.scrollY;
+        var total = document.documentElement.scrollHeight - window.innerHeight;
+        var progress = total > 0 ? Math.round((scrolled / total) * 100) : 0;
+        bar.style.width = progress + '%';
+        pct.textContent = progress + '%';
+        circle.style.strokeDashoffset = circumference * (1 - progress / 100);
+      }, { passive: true });
+    })();
+  </script>
+
+</body>
+</html>
