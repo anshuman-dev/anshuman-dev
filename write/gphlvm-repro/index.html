@@ -593,21 +593,6 @@ python scripts/train.py --n-iter 1000 --stress-scale 5.0 --stress-warmup 300
 python scripts/animate.py     # generates the training gif
 python scripts/make_figures.py</code></pre>
 
-      <h2>What this reproduction does not cover</h2>
-
-      <p>
-        The full paper also demonstrates motion generation. Once you have learned a hyperbolic latent space that respects the taxonomy, you can sample new points in that space and decode them back through the GP to get novel motion trajectories. The decoding is a GP prediction: given a new latent position, what joint angles should the robot produce?
-      </p>
-
-      <p>
-        I focused on the structure-learning part because that is where the geometry matters. The generation side would be a natural extension. The decoder is already implicit in the trained GP.
-      </p>
-
-      <hr>
-
-      <p>
-        The thing I kept noticing while building this is how much the geometry question matters and how rarely it gets asked. Most ML defaults to Euclidean space not because Euclidean is right but because it is the default. For data that has tree structure, hierarchical structure, or any structure that does not live naturally in a flat plane, the geometry of the latent space is a real design decision. Hyperbolic space is one answer. There are others. But at least asking the question seems worth it.
-      </p>
 
     </div>
 
