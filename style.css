@@ -438,6 +438,112 @@ a:hover {
   font-family: 'Playfair Display', serif;
 }
 
+.gallery-hero {
+  margin: 32px 0 0;
+  padding: 0;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  cursor: zoom-in;
+  animation: heroReveal 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes heroReveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.gallery-hero img {
+  display: block;
+  width: 100%;
+  max-height: 72vh;
+  object-fit: cover;
+  filter: brightness(0.9) saturate(0.8) contrast(1.08);
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.5s ease;
+}
+
+.gallery-hero:hover img {
+  transform: scale(1.015);
+  filter: brightness(0.96) saturate(0.9) contrast(1.05);
+}
+
+/* vignette */
+.gallery-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 60% 50%, transparent 35%, rgba(0,0,0,0.52) 100%);
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.gallery-hero:hover::after {
+  opacity: 0.6;
+}
+
+/* film grain */
+.gallery-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23grain)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+/* lightbox */
+.gallery-lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  cursor: zoom-out;
+  backdrop-filter: blur(6px);
+}
+
+.gallery-lightbox.open { display: flex; }
+
+.gallery-lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 2px;
+  box-shadow: 0 32px 96px rgba(0, 0, 0, 0.8);
+}
+
+.gallery-lightbox-close {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.45);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.gallery-lightbox-close:hover { color: rgba(255,255,255,0.9); }
+
 /* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 600px) {
   nav { padding: 0 20px; }

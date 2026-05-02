@@ -42,8 +42,13 @@
       <p>Photos, moments, things worth keeping.</p>
     </div>
 
-    <div class="gallery-empty">
-      <p>Coming soon.</p>
+    <figure class="gallery-hero" onclick="openLightbox('../static/cowork-night.jpg')">
+      <img src="../static/cowork-night.jpg" alt="Late night at the coworking space">
+    </figure>
+
+    <div class="gallery-lightbox" id="lightbox" onclick="closeLightbox()">
+      <button class="gallery-lightbox-close" onclick="closeLightbox()" aria-label="Close">&times;</button>
+      <img id="lightbox-img" src="" alt="">
     </div>
   </main>
 
@@ -69,6 +74,21 @@
     toggle.addEventListener('click', function() {
       var current = document.documentElement.getAttribute('data-theme');
       applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    function openLightbox(src) {
+      document.getElementById('lightbox-img').src = src;
+      document.getElementById('lightbox').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeLightbox();
     });
   </script>
 
