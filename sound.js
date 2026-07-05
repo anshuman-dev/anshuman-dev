@@ -14,6 +14,7 @@
     build:   'sound/mixkit-positive-interface-beep-221.wav',
     write:   'sound/mixkit-typing-on-a-laptop-keyboard-2531-1s.wav',
     gallery: 'sound/mixkit-camera-shutter-click-1133.wav',
+    shelf:   'sound/mixkit-fast-double-click-on-mouse-275.wav',
     click:   'sound/mixkit-modern-technology-select-3124.wav',
   };
 
@@ -45,6 +46,7 @@
     if (p.endsWith('/build/')) return 'build';
     if (p.endsWith('/write/')) return 'write';
     if (p.endsWith('/gallery/')) return 'gallery';
+    if (p.endsWith('/shelf/')) return 'shelf';
     if (p === '/' || p.endsWith('/anshuman-dev/')) return 'root';
     return null;
   }
@@ -55,6 +57,7 @@
     if (path.endsWith('/build/')) return 'build';
     if (path.endsWith('/write/')) return 'write';
     if (path.endsWith('/gallery/')) return 'gallery';
+    if (path.endsWith('/shelf/')) return 'shelf';
     if (path === '/' || path === './') return 'root';
     return null;
   }
