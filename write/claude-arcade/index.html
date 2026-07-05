@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Playing games while your AI Agent thinks - Claude Arcade — Anshuman</title>
+  <title>Playing games while your AI Agent thinks - Claude Arcade | Anshuman</title>
   <link rel="icon" href="../../favicon.png">
   <script src="../../sound.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -321,6 +321,7 @@
       <a href="../../" class="nav-tab">me</a>
       <a href="../../build/" class="nav-tab">build</a>
       <a href="../../write/" class="nav-tab active">write</a>
+      <a href="../../shelf/" class="nav-tab">shelf</a>
       <a href="../../gallery/" class="nav-tab">gallery</a>
     </div>
     <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
@@ -356,7 +357,7 @@
     <div class="article-body">
 
       <p>
-        The idea was simple and a little absurd: what if, every time Claude Code was running a tool or thinking through a task, a mini-game popped up in your terminal? Not an app. Not a tab. Right there in the same terminal where your code lives — play for a few seconds, Claude finishes, game disappears.
+        The idea was simple and a little absurd: what if, every time Claude Code was running a tool or thinking through a task, a mini-game popped up in your terminal? Not an app. Not a tab. Right there in the same terminal where your code lives: play for a few seconds, Claude finishes, game disappears.
       </p>
 
       <p>
@@ -368,21 +369,21 @@
       <h2>The idea</h2>
 
       <p>
-        I use Claude Code a lot. It's genuinely good at long multi-step tasks — refactoring, writing tests, debugging build failures. But those tasks take time, and I found myself context-switching: checking a Slack message, opening Twitter, losing the thread. The downtime wasn't the problem. The aimless drift was.
+        I use Claude Code a lot. It's genuinely good at long multi-step tasks: refactoring, writing tests, debugging build failures. But those tasks take time, and I found myself context-switching: checking a Slack message, opening Twitter, losing the thread. The downtime wasn't the problem. The aimless drift was.
       </p>
 
       <p>
-        I wanted something that kept me in the terminal mentally, even when Claude was doing the work. A game felt right — something you could pick up for fifteen seconds and put down cleanly. The constraint was interesting too: it had to live entirely in the terminal, using nothing but ASCII/Unicode characters, with no external dependencies, installable with a single command.
+        I wanted something that kept me in the terminal mentally, even when Claude was doing the work. A game felt right: something you could pick up for fifteen seconds and put down cleanly. The constraint was interesting too: it had to live entirely in the terminal, using nothing but ASCII/Unicode characters, with no external dependencies, installable with a single command.
       </p>
 
       <h2>How Claude Code hooks work</h2>
 
       <p>
-        Claude Code has a hooks system. You can register shell commands that fire on specific events — <code>PreToolUse</code> (before Claude runs a tool), <code>PostToolUse</code> (after), and <code>Stop</code> (when Claude finishes). These live in <code>~/.claude/settings.json</code>.
+        Claude Code has a hooks system. You can register shell commands that fire on specific events: <code>PreToolUse</code> (before Claude runs a tool), <code>PostToolUse</code> (after), and <code>Stop</code> (when Claude finishes). These live in <code>~/.claude/settings.json</code>.
       </p>
 
       <p>
-        The plan: on <code>PreToolUse</code>, start a game. On <code>PostToolUse</code> and <code>Stop</code>, stop it. The game process needed to be completely independent of Claude's process — it couldn't block Claude, couldn't read from the same stdin, and had to clean up without leaving any mess behind.
+        The plan: on <code>PreToolUse</code>, start a game. On <code>PostToolUse</code> and <code>Stop</code>, stop it. The game process needed to be completely independent of Claude's process: it couldn't block Claude, couldn't read from the same stdin, and had to clean up without leaving any mess behind.
       </p>
 
       <p>
@@ -392,7 +393,7 @@
       <h2>The terminal access problem</h2>
 
       <p>
-        Here's something I didn't anticipate: when a hook fires, Claude Code has already captured stdin and stdout. The hook subprocess inherits those — which means you can't just call <code>curses.wrapper()</code> and get a working terminal. It fails immediately with <code>[Errno 6] Device not configured</code>.
+        Here's something I didn't anticipate: when a hook fires, Claude Code has already captured stdin and stdout. The hook subprocess inherits those, which means you can't just call <code>curses.wrapper()</code> and get a working terminal. It fails immediately with <code>[Errno 6] Device not configured</code>.
       </p>
 
       <p>
@@ -406,34 +407,34 @@ if tty_fd > 2:
     os.close(tty_fd)</code></pre>
 
       <p>
-        When even that fails — some terminal emulators don't expose <code>/dev/tty</code> reliably — the fallback is to use <code>osascript</code> on macOS to open a fresh Terminal.app or iTerm2 window and run the game there. Less seamless, but it works.
+        When even that fails (some terminal emulators don't expose <code>/dev/tty</code> reliably), the fallback is to use <code>osascript</code> on macOS to open a fresh Terminal.app or iTerm2 window and run the game there. Less seamless, but it works.
       </p>
 
       <h2>Game one: Bird Hunt</h2>
 
       <p>
-        I started with something visually interesting — birds flying across the screen, shot with a crosshair. The entire visual is Unicode block characters. A sparrow looks like this:
+        I started with something visually interesting: birds flying across the screen, shot with a crosshair. The entire visual is Unicode block characters. A sparrow looks like this:
       </p>
 
       <pre><code>frames_r: ["▄▀  ", "*██>"]   # wings up
           ["▀▄  ", "*██>"]   # wings down</code></pre>
 
       <p>
-        Three bird types — Sparrow, Seagull, Pterodactyl — each with different speeds, sizes, and point values. The crosshair moves with arrow keys, spacebar shoots. Birds animate between two frames at different rates depending on type. The whole thing runs in a fixed 30 FPS loop using a timestep accumulator rather than <code>time.sleep(0.033)</code> — the latter drifts, especially under load.
+        Three bird types (Sparrow, Seagull, Pterodactyl) each with different speeds, sizes, and point values. The crosshair moves with arrow keys, spacebar shoots. Birds animate between two frames at different rates depending on type. The whole thing runs in a fixed 30 FPS loop using a timestep accumulator rather than <code>time.sleep(0.033)</code>, since the latter drifts, especially under load.
       </p>
 
       <p>
         The fixed timestep pattern looks like this: you track real elapsed time, accumulate it, and consume it in fixed <code>FRAME_DT</code>-sized chunks. Physics and game logic run on those fixed steps regardless of how fast the CPU is running. Rendering happens once per pass. It gives you consistent, deterministic behavior even when frames occasionally take longer.
       </p>
 
-      <h2>Game two: Pong — and the problem of an unbeatable CPU</h2>
+      <h2>Game two: Pong, and the problem of an unbeatable CPU</h2>
 
       <p>
-        Pong seemed obvious as game two. Paddle, ball, score. The implementation came together fast — the hard part wasn't the mechanics, it was the AI.
+        Pong seemed obvious as game two. Paddle, ball, score. The implementation came together fast: the hard part wasn't the mechanics, it was the AI.
       </p>
 
       <p>
-        My first version of the CPU paddle tracked the ball position perfectly every frame. It never missed. I tried capping its speed — it still never missed, it just got there by the last possible moment. The problem is that a CPU with perfect information is effectively unbeatable no matter how slow you make it, because it always knows exactly where the ball will be.
+        My first version of the CPU paddle tracked the ball position perfectly every frame. It never missed. I tried capping its speed; it still never missed, it just got there by the last possible moment. The problem is that a CPU with perfect information is effectively unbeatable no matter how slow you make it, because it always knows exactly where the ball will be.
       </p>
 
       <p>
@@ -457,7 +458,7 @@ if tty_fd > 2:
       </p>
 
       <p>
-        The combination makes the CPU feel like a real opponent — competent enough to return most shots, but genuinely beatable with patience and placement.
+        The combination makes the CPU feel like a real opponent: competent enough to return most shots, but genuinely beatable with patience and placement.
       </p>
 
       <h2>The nested curses bug</h2>
@@ -467,7 +468,7 @@ if tty_fd > 2:
       </p>
 
       <p>
-        The root cause was nested <code>curses.wrapper()</code> calls. The menu ran inside one <code>curses.wrapper()</code>. When a game was selected, the code called <code>curses.wrapper(game_fn)</code> again. The inner wrapper called <code>endwin()</code> when it finished, tearing down the entire curses session — including the outer one. The terminal state was corrupted. The outer wrapper then returned, thinking everything was fine.
+        The root cause was nested <code>curses.wrapper()</code> calls. The menu ran inside one <code>curses.wrapper()</code>. When a game was selected, the code called <code>curses.wrapper(game_fn)</code> again. The inner wrapper called <code>endwin()</code> when it finished, tearing down the entire curses session, including the outer one. The terminal state was corrupted. The outer wrapper then returned, thinking everything was fine.
       </p>
 
       <p>
@@ -491,7 +492,7 @@ curses.wrapper(_inner)             # one session, always</code></pre>
       </p>
 
       <p>
-        The stop file. When the hook fires to end a game, it writes <code>/tmp/.claude-arcade-stop</code>. If no game was running at that moment — maybe you quit manually before the hook fired — the file sits on disk. Next time you launch a game, the very first iteration of the game loop sees the file, deletes it, and breaks out. The game exits in under a frame.
+        The stop file. When the hook fires to end a game, it writes <code>/tmp/.claude-arcade-stop</code>. If no game was running at that moment (maybe you quit manually before the hook fired), the file sits on disk. Next time you launch a game, the very first iteration of the game loop sees the file, deletes it, and breaks out. The game exits in under a frame.
       </p>
 
       <p>
@@ -501,7 +502,7 @@ curses.wrapper(_inner)             # one session, always</code></pre>
       <h2>Game three: Road Racer</h2>
 
       <p>
-        For the third game I wanted something visually richer — movement, speed, a sense of danger. A top-down road racer fit. Three lanes, oncoming traffic, increasing speed with no ceiling on difficulty.
+        For the third game I wanted something visually richer: movement, speed, a sense of danger. A top-down road racer fit. Three lanes, oncoming traffic, increasing speed with no ceiling on difficulty.
       </p>
 
       <p>
@@ -509,7 +510,7 @@ curses.wrapper(_inner)             # one session, always</code></pre>
       </p>
 
       <p>
-        Enemy cars are five characters wide and four rows tall. There are three types — sedan, truck, sports car — each a different colour, each with a distinct sprite made entirely of block characters:
+        Enemy cars are five characters wide and four rows tall. There are three types (sedan, truck, sports car) each a different colour, each with a distinct sprite made entirely of block characters:
       </p>
 
       <pre><code>Sedan  (red):    ["▐▄▓▄▌", "▐▓░▓▌", "▐▓░▓▌", "▐▀▓▀▌"]
@@ -517,11 +518,11 @@ Truck  (yellow): ["▐███▌", "▐█ █▌", "▐█ █▌", "▐█�
 Sports (white):  ["▐▄▄▄▌", "▐░░░▌", "▐░░░▌", "▐▀▀▀▌"]</code></pre>
 
       <p>
-        Lane changes are animated — the player car slides smoothly across at 22 columns/second rather than teleporting. The smooth slide comes from clamping a per-frame step toward the target position: <code>player_x = target if abs(diff) &lt;= step else player_x + copysign(step, diff)</code>. Simple, but it makes the game feel responsive rather than mechanical.
+        Lane changes are animated: the player car slides smoothly across at 22 columns/second rather than teleporting. The smooth slide comes from clamping a per-frame step toward the target position: <code>player_x = target if abs(diff) &lt;= step else player_x + copysign(step, diff)</code>. Simple, but it makes the game feel responsive rather than mechanical.
       </p>
 
       <p>
-        After a collision you get two seconds of invincibility — the car flashes by toggling visibility eight times per second (<code>int(invincible * 8) % 2 == 0</code>). It's a classic pattern from arcade games and it works because it communicates the invincibility window clearly without any UI chrome.
+        After a collision you get two seconds of invincibility: the car flashes by toggling visibility eight times per second (<code>int(invincible * 8) % 2 == 0</code>). It's a classic pattern from arcade games and it works because it communicates the invincibility window clearly without any UI chrome.
       </p>
 
       <h2>Packaging and distribution</h2>
@@ -531,11 +532,11 @@ Sports (white):  ["▐▄▄▄▌", "▐░░░▌", "▐░░░▌", "▐�
       </p>
 
       <p>
-        I ran into the classic PyPI 403 on first upload — wrong API token format. The token has to include the <code>pypi-</code> prefix and be entered exactly. After that, <code>python3 -m build && twine upload dist/*</code> is all it takes.
+        I ran into the classic PyPI 403 on first upload: wrong API token format. The token has to include the <code>pypi-</code> prefix and be entered exactly. After that, <code>python3 -m build && twine upload dist/*</code> is all it takes.
       </p>
 
       <p>
-        The splash screen — the <strong>CLAUDE ARCADE</strong> title that appears when you run <code>claude-arcade play</code> — is rendered using a hand-built 5×5 block font. Each letter is defined as five rows of five characters using only <code>█</code>. It's impractical and I enjoyed making it.
+        The splash screen (the <strong>CLAUDE ARCADE</strong> title that appears when you run <code>claude-arcade play</code>) is rendered using a hand-built 5×5 block font. Each letter is defined as five rows of five characters using only <code>█</code>. It's impractical and I enjoyed making it.
       </p>
 
       <h2>What's next</h2>
@@ -545,7 +546,7 @@ Sports (white):  ["▐▄▄▄▌", "▐░░░▌", "▐░░░▌", "▐�
       </p>
 
       <p>
-        The games I'm thinking about next: a snake variant, a mini roguelike (one floor, procedural rooms, one life), and something that uses your actual shell history as content — the idea of a game that knows what commands you run is interesting. A JavaScript port is also on the table once there are four or five Python games worth porting.
+        The games I'm thinking about next: a snake variant, a mini roguelike (one floor, procedural rooms, one life), and something that uses your actual shell history as content: the idea of a game that knows what commands you run is interesting. A JavaScript port is also on the table once there are four or five Python games worth porting.
       </p>
 
       <p>

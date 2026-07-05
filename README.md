@@ -29,7 +29,7 @@
 </tr>
 </table>
 
-> *"The true delight is in the finding out rather than in the knowing."* — Isaac Asimov
+> *"The true delight is in the finding out rather than in the knowing."* (Isaac Asimov)
 
 📫 mailsinghanshuman@gmail.com
 
