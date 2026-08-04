@@ -395,6 +395,8 @@
 
     <div class="article-body">
 
+      <p><em>Parts of this post, its code, and its analysis were developed with AI assistance.</em></p>
+
       <p>
         I set up a quantized 7B model using vLLM, added a guardrail in front, and then created an RL agent to try to break through that guardrail.
       </p>
@@ -410,7 +412,7 @@
       </p>
 
       <p>
-        I put a simple FastAPI wrapper in front of vLLM, which I built myself. It isn't just a passthrough. It checks a bearer token, logs every request and response to a JSONL file, and combines its own Prometheus counters with vLLM's metrics at a single <code>/metrics</code> endpoint. The logging became very important later, since it let me prove exactly what the guardrail did, instead of just relying on the response text.
+        I put a simple FastAPI wrapper in front of vLLM, which I built myself. It checks a bearer token, logs every request and response to a JSONL file, and combines its own Prometheus counters with vLLM's metrics at a single <code>/metrics</code> endpoint. The logging became very important later, since it let me prove exactly what the guardrail did, instead of just relying on the response text.
       </p>
 
       <p>
@@ -578,7 +580,7 @@ exploration_grad = exploration_coef * (uniform - probs)</code></pre>
       </p>
 
       <p>
-        For me, this project isn't finished yet. The guardrail still misses about half of a determined attacker's attempts in static tests, and the RL agent's episode success rate still looks noisy, even though the policy is actually learning. I'd rather be open about these issues than hide them. If I continue working on this, I want to see if the same echo tricks keep working once decaying exploration lets the policy settle, or if something new comes out on top.
+        For me, this project isn't finished yet. The guardrail still misses about half of a determined attacker's attempts in static tests, and the RL agent's episode success rate still looks noisy, even though the policy is actually learning.
       </p>
 
     </div>
