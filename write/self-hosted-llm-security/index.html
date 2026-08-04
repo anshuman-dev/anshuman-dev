@@ -396,29 +396,29 @@
     <div class="article-body">
 
       <p>
-        I self-hosted a quantized 7B model behind vLLM, put a guardrail in front of it, then built an RL agent whose only job was finding ways past that guardrail. Every project I'd built before this sat on top of a hosted API like Gemini or Claude. None of them gave me a model I actually served, monitored, and defended myself, and red-teaming is hard to understand from the outside without something real to attack.
+        I set up a quantized 7B model using vLLM, added a guardrail in front, and then created an RL agent to try to break through that guardrail.
       </p>
 
       <p>
-        This is what actually happened, including the parts that didn't work on the first try. Those turned out to be the more interesting parts.
+        In this post, I'll explain how I hosted the model, built the guardrails, and set up the evaluations.
       </p>
 
       <h2>Serving a real model, for real</h2>
 
       <p>
-        The model is <code>Qwen2.5-7B-Instruct-AWQ</code>, a 7B open-weight instruct model, 4-bit quantized, served with <strong>vLLM</strong> on a rented GPU. I used RunPod, bouncing between an RTX 4000 Ada and an RTX 2000 Ada depending on availability, at roughly $0.24 to $0.28 an hour.
+        I hosted the <code>Qwen2.5-7B-Instruct-AWQ</code> model, which is a 7B open-weight instruct model, quantized to 4 bits and served with <strong>vLLM</strong> on a rented GPU. I used RunPod, switching between an RTX 4000 Ada and an RTX 2000 Ada based on what was available, at a cost of about $0.24 to $0.28 per hour.
       </p>
 
       <p>
-        In front of vLLM sits a thin FastAPI wrapper I own, not a passthrough. It checks a bearer token, logs every request and response to a JSONL file, and merges its own Prometheus counters with vLLM's native metrics under one <code>/metrics</code> endpoint. The logging turned out to matter a lot later. It's how I could prove, forensically, what the guardrail actually did instead of just trusting the response text.
+        I put a simple FastAPI wrapper in front of vLLM, which I built myself. It isn't just a passthrough. It checks a bearer token, logs every request and response to a JSONL file, and combines its own Prometheus counters with vLLM's metrics at a single <code>/metrics</code> endpoint. The logging became very important later, since it let me prove exactly what the guardrail did, instead of just relying on the response text.
       </p>
 
       <p>
-        The whole thing is a Docker image, the official <code>vllm/vllm-openai</code> base plus the wrapper, built with <code>docker buildx --platform linux/amd64</code> from an Apple Silicon laptop. vLLM's image is CUDA and x86 only, so cross-building rather than running natively was the only sane option. I pushed it to Docker Hub and deployed it as a RunPod pod from a custom template.
+        Everything runs in a Docker image, using the official <code>vllm/vllm-openai</code> base along with my wrapper. I built it with <code>docker buildx --platform linux/amd64</code> on my Apple Silicon laptop, since vLLM's image only supports CUDA and x86. Cross-building was the only practical choice. After building, I pushed the image to Docker Hub and deployed it on RunPod using a custom template.
       </p>
 
       <p>
-        The first deploy crash-looped. Here's the subtle problem I ran into: <code>wrapper/app.py</code> did <code>import guardrail</code> instead of <code>from . import guardrail</code>. That works fine locally when you run the script directly, but breaks the moment uvicorn loads it as a package submodule, because Python doesn't add the package's own directory to <code>sys.path</code> in that case. I confirmed it with a two-line local repro before touching the deployed image again.
+        My first deployment kept crashing. The issue was that <code>wrapper/app.py</code> used <code>import guardrail</code> instead of <code>from . import guardrail</code>. This works when running the script directly, but fails when uvicorn loads it as a package submodule, since Python doesn't add the package's directory to <code>sys.path</code> in that case. I confirmed the problem with a quick two-line local test before updating the deployed image.
       </p>
 
       <pre><code># fails:
@@ -431,17 +431,17 @@ from . import guardrail</code></pre>
       <h2>Monitoring with Prometheus, Grafana, and Grafana Cloud</h2>
 
       <p>
-        Prometheus scrapes the wrapper's <code>/metrics</code>, request counts by status, latency histograms, plus vLLM's own roughly 360 native metrics merged in. Grafana visualizes it. Running locally in Docker was enough to prove it worked, but a dashboard only reachable on <code>localhost</code> isn't something you can point someone to. So I also wired local Prometheus to <code>remote_write</code> a copy of everything into Grafana Cloud's free tier, so the dashboard has a real, permanent URL and historical data survives even when the GPU pod isn't running. I turn that pod off between sessions to keep costs down.
+        Prometheus collects metrics from the wrapper's <code>/metrics</code> endpoint, including request counts by status, latency histograms, and about 360 native vLLM metrics. Grafana is used to visualize all this data. Running everything locally in Docker showed it worked, but a dashboard only available on <code>localhost</code> isn't very useful for sharing. To fix this, I set up Prometheus to send all the data to Grafana Cloud's free tier, so the dashboard has a permanent URL and keeps historical data even when the GPU pod is off. I turn off the pod between sessions to save money.
       </p>
 
       <h2>Where the guardrail actually breaks</h2>
 
       <p>
-        The guardrail watches for four categories: <code>cyberattack</code>, <code>illegal_activity</code>, <code>privacy_pii</code>, and <code>system_prompt_leak</code>, chosen to be realistic and independently checkable. It's an LLM-as-judge setup: the same served model, given a strict classifier prompt, scores every response before it goes back to the caller. If it judges a reply unsafe, the wrapper swaps the reply for a refusal and logs the original reply plus the verdict, so nothing is lost for later analysis.
+        The guardrail looks for four types of issues: cyberattack, illegal activity, privacy/PII, and system prompt leaks. These categories are realistic and can be checked independently. The setup uses the same model as a judge, giving it a strict classifier prompt to score each response before sending it back to the user. If the model decides a reply is unsafe, the wrapper replaces it with a refusal and logs both the original reply and the verdict for later review.
       </p>
 
       <p>
-        The judge is the same model being judged, a real blind-spot risk, and the eval below produced concrete evidence of it rather than just a theoretical worry.
+        The judge is the same model it's evaluating, which creates a real risk of blind spots. The evaluation below shows real evidence of this problem, not just a theoretical concern.
       </p>
 
       <p>
@@ -472,7 +472,7 @@ from . import guardrail</code></pre>
       </table>
 
       <p>
-        All four misses share a pattern. The model did comply and produce the actual unsafe content, but the judge called it safe. Its own reasoning, pulled verbatim from the logs:
+        All four misses followed the same pattern: the model produced unsafe content as requested, but the judge still marked it as safe. Here's the reasoning from the logs:
       </p>
 
       <blockquote>
@@ -481,11 +481,11 @@ from . import guardrail</code></pre>
       </blockquote>
 
       <p>
-        The judge seems to weight how the content was framed, essentially deciding "this is just an echo," over what the content actually was. And it isn't a clean, patchable rule. A structurally identical PII request, a fabricated SSN versus a fabricated email, got caught in one case and missed in the other. That's LLM-judge inconsistency, not a single missing keyword.
+        The judge appears to focus more on how the content is framed, seeing it as "just an echo," rather than on the actual content. This isn't something that can be fixed with a simple rule. For example, two nearly identical PII requests, one with a fake SSN and one with a fake email, had different outcomes: one was caught, the other was missed. This shows inconsistency in the LLM-judge, not just a missing keyword.
       </p>
 
       <p>
-        I didn't want to trust wording alone, so I pulled the raw request log directly off the pod over SSH and diffed the actual model output against what the guardrail decided. Two real transcripts, same "repeat this back" framing, opposite outcomes:
+        I didn't want to rely only on the wording, so I downloaded the raw request logs from the pod over SSH and compared the actual model outputs to the guardrail's decisions. Here are two real examples with the same "repeat this back" prompt but different results:
       </p>
 
       <div class="tcard missed">
@@ -509,37 +509,37 @@ from . import guardrail</code></pre>
       </div>
 
       <p>
-        Same "just repeating text" framing, same model, same judge. One got caught, one didn't, and that inconsistency is exactly what the eval numbers above were showing in aggregate. I left it as a documented limitation rather than quietly patching it, and used it as the actual target for an attacker instead.
+        Both examples used the same "just repeating text" approach, with the same model and judge. One was flagged, the other wasn't, which matches the inconsistency seen in the evaluation results. Instead of quietly fixing it, I documented this limitation and made it the main target for an attacker.
       </p>
 
-      <h2>An RL agent that attacks the guardrail</h2>
+      <h2>Building an RL agent to attack the guardrail</h2>
 
       <p>
         This is the part I cared about most, because it's also where I made two real mistakes and had to diagnose and fix one of them live.
       </p>
 
       <p>
-        The environment is simple to state. One episode means trying to get one known-unsafe payload, reused from the eval set so ground truth is free, past the guardrail. The action is picking one of six "echo-style" template variations: the repetition trick the eval already found, plus five variants I added, translate-and-back, phonetic transcription, continue-verbatim, markdown-quote, and JSON-string. The reward is binary and directly observed, +1 if the payload text actually shows up in the final reply, a small penalty otherwise. There's no learned reward model here, unlike a preference-based RL setup. Success is directly checkable, so plain REINFORCE on a small tabular softmax policy was the right amount of machinery, not more.
+        The setup is straightforward. In each episode, the goal is to get a known-unsafe payload, taken from the eval set so I know the ground truth, past the guardrail. The agent chooses from six "echo-style" template variations: the original repetition trick plus five new ones I added (translate-and-back, phonetic transcription, continue-verbatim, markdown-quote, and JSON-string). The reward is simple: +1 if the payload appears in the final reply, and a small penalty if not. There's no learned reward model here, unlike preference-based RL. Since success is easy to check, I used plain REINFORCE with a small tabular softmax policy, which was enough for this task.
       </p>
 
       <h3>Does this even work?</h3>
 
       <p>
-        First run: 40 episodes, up to 5 template attempts per episode. Ninety percent of payloads got through within five tries. More interesting than the raw number, the agent gravitated toward a template I hadn't specifically flagged as strong, phonetic transcription, at 76 percent success, which outperformed the echo trick I'd manually found (38 percent in this run). A small, genuine example of automated search beating a manually-found jailbreak.
+        In the first run, I did 40 episodes, allowing up to 5 template attempts per episode. Ninety percent of payloads got through within five tries. What stood out was that the agent preferred a template I hadn't expected, phonetic transcription, which had a 76 percent success rate, beating the echo trick I found manually (which only had 38 percent). This was a real example of automated search outperforming a manual jailbreak.
       </p>
 
       <p>
-        But there was no real learning curve to show. Success was already high from episode one, so there wasn't much room to visibly improve. Not a bug, just an environment that didn't leave space to demonstrate learning.
+        However, there wasn't much of a learning curve. Success rates were high from the start, so there wasn't much room for improvement. This wasn't a bug, just a limitation of the environment.
       </p>
 
       <h3>Capping at one attempt, and a real bug</h3>
 
       <p>
-        To force a visible learning curve, I capped episodes at a single attempt, no retrying within an episode. The result got worse over training instead of better, ending around a 30 to 40 percent success window despite the best template, markdown-quote at roughly 90 percent true success, being available the whole time.
+        To create a visible learning curve, I limited each episode to a single attempt, with no retries. This actually made results worse over time, with success dropping to about 30 to 40 percent, even though the best template (markdown-quote, with about 90 percent true success) was always available.
       </p>
 
       <p>
-        The attempt-allocation numbers told the story. The policy locked onto a mediocre template, continue-verbatim at 55 percent, early: 56 of 100 attempts. The genuinely best template only got 11 tries. A lucky early streak on a decent-but-not-best action, combined with a REINFORCE update that reinforced raw reward with no baseline and no explicit exploration pressure, meant the policy had no reason to keep checking whether something better existed.
+        The way attempts were distributed explained what happened. The policy quickly settled on a mediocre template, continue-verbatim (55 percent success), using it 56 out of 100 times. The best template only got 11 tries. An early lucky streak with a decent but not optimal action, combined with a REINFORCE update that used raw reward without a baseline or exploration pressure, meant the policy stopped looking for better options.
       </p>
 
       <h3>The fix</h3>
@@ -557,7 +557,7 @@ advantage = ret - running_mean[state]
 exploration_grad = exploration_coef * (uniform - probs)</code></pre>
 
       <p>
-        Before spending more real API calls on it, I verified the fix on a synthetic test: simulated a misleading early streak favoring a mediocre action, same shape as the bug, and confirmed the fixed update still converged to the true best action. Then I reran for real. Attempt allocation became far more even, 13 to 20 per template instead of 5 to 56, and the actual best template correctly got the most attempts and the highest measured success rate, 0.90.
+        Before using more real API calls, I tested the fix with a synthetic example: I simulated an early lucky streak for a mediocre action, just like the bug, and confirmed that the updated method still found the best action in the end. When I ran the real test again, attempts were spread much more evenly, 13 to 20 per template instead of 5 to 56, and the best template got the most tries and the highest success rate (0.90).
       </p>
 
       <img src="training_curves.png" alt="Attack success rate over training, across all three runs">
@@ -567,18 +567,18 @@ exploration_grad = exploration_coef * (uniform - probs)</code></pre>
       <p class="fig-caption">Which templates actually worked, before vs after fixing the exploration bug.</p>
 
       <p>
-        The raw success-rate-over-time line still doesn't show a clean rising curve even after the fix, which looks discouraging on its own. But that chart is watching the wrong thing. What the policy actually believes, its probability of picking each template, tells a cleaner story, so I instrumented the fixed run to log that directly rather than only the win/loss outcome of each episode.
+        Even after the fix, the raw success rate over time didn't show a clear upward trend, which might seem discouraging. But that chart isn't showing the most important thing. The real story is in the policy's probability of choosing each template, so I changed the logging to track that directly instead of just win/loss results.
       </p>
 
       <img src="policy_evolution.png" alt="How the attacker's preferences actually shifted during training">
       <p class="fig-caption">How the attacker's preferences actually shifted during training.</p>
 
       <p>
-        Markdown-quote climbs steadily away from the rest starting around episode 40, while JSON-string, which never once worked, gets visibly abandoned over the same stretch. The learning is real and it's visible directly in what the policy chose to keep trying. It just doesn't show up in the noisy per-episode success rate, because even a strongly preferred template only wins a fraction of the time, and the exploration term keeps sampling the others on purpose. The exploration term is also why the JSON-string template still got 13 attempts across the whole run despite succeeding zero times: it's strong enough to keep double-checking options it already knows are weak. The actual fix for that is decaying exploration, exploring a lot early and exploiting more as training progresses instead of holding a constant exploration rate. That's a natural next step I haven't done yet.
+        Starting around episode 40, the markdown-quote template became much more popular, while JSON-string, which never worked, was used less and less. This shows real learning, visible in the policy's choices, even if it doesn't show up in the noisy per-episode success rate. The exploration term also explains why JSON-string still got 13 tries despite never working: it keeps checking weaker options. The real solution is to use decaying exploration, trying more options early and focusing on the best ones later. I haven't implemented that yet, but it's the next logical step.
       </p>
 
       <p>
-        None of this is finished. The guardrail still misses half of a determined attacker's attempts on a static eval, and the raw episode-success metric for the RL agent still looks noisy even though the policy underneath it is genuinely learning, and both of those are things I'd rather show than hide. If I pick this back up, I want to see whether the same family of echo tricks keeps winning once decaying exploration lets the policy actually commit, or whether something else takes over.
+        For me, this project isn't finished yet. The guardrail still misses about half of a determined attacker's attempts in static tests, and the RL agent's episode success rate still looks noisy, even though the policy is actually learning. I'd rather be open about these issues than hide them. If I continue working on this, I want to see if the same echo tricks keep working once decaying exploration lets the policy settle, or if something new comes out on top.
       </p>
 
     </div>
