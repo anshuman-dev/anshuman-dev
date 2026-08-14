@@ -1,0 +1,47 @@
+<svg width="820" height="360" viewBox="0 0 820 360" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .stage{fill:#fff;stroke:#2c3440;stroke-width:1.4}
+  .stage-title{font:700 14px 'Segoe UI',Arial,sans-serif;fill:#1c2128}
+  .stage-sub{font:400 11.5px 'Segoe UI',Arial,sans-serif;fill:#5b6472}
+  .result-fail{font:700 12px 'Segoe UI',Arial,sans-serif;fill:#b3432b}
+  .result-pass{font:700 12px 'Segoe UI',Arial,sans-serif;fill:#2f6f4f}
+  .arr{stroke:#8a92a0;stroke-width:1.6;fill:none;marker-end:url(#ah2)}
+  .lbl{font:400 11px 'Segoe UI',Arial,sans-serif;fill:#5b6472}
+</style>
+<defs>
+  <marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M1 1L9 5L1 9" fill="none" stroke="#8a92a0" stroke-width="1.6"/>
+  </marker>
+</defs>
+
+<rect class="stage" x="30" y="60" width="200" height="150" rx="10"/>
+<text class="stage-title" x="50" y="90">Task 1</text>
+<text class="stage-sub" x="50" y="110">invoice-bola</text>
+<text class="stage-sub" x="50" y="128">single file, one bug</text>
+<text class="stage-sub" x="50" y="146">shallow read finds it</text>
+<text class="result-fail" x="50" y="180">2 failures</text>
+<text class="stage-sub" x="50" y="196">Kimi, Gemini</text>
+
+<path class="arr" d="M230 135 L305 135"/>
+
+<rect class="stage" x="310" y="60" width="200" height="150" rx="10"/>
+<text class="stage-title" x="330" y="90">Task 2</text>
+<text class="stage-sub" x="330" y="110">payment-race</text>
+<text class="stage-sub" x="330" y="128">concurrency reasoning</text>
+<text class="stage-sub" x="330" y="146">needed, single file</text>
+<text class="result-pass" x="330" y="180">solved by all</text>
+<text class="stage-sub" x="330" y="196">every model, every run</text>
+
+<path class="arr" d="M510 135 L585 135"/>
+
+<rect class="stage" x="590" y="60" width="200" height="150" rx="10"/>
+<text class="stage-title" x="610" y="90">Full environment</text>
+<text class="stage-sub" x="610" y="110">3 services, 4 bugs</text>
+<text class="stage-sub" x="610" y="128">noise, 5 decoys</text>
+<text class="stage-sub" x="610" y="146">zero hints given</text>
+<text class="result-pass" x="610" y="180">solved by all</text>
+<text class="stage-sub" x="610" y="196">every model, every run</text>
+
+<text x="30" y="260" class="lbl">Difficulty went up at every stage. The pass rate stayed the same after Task 1.</text>
+<text x="30" y="280" class="lbl">The gaps this project found came from the easiest task.</text>
+</svg>

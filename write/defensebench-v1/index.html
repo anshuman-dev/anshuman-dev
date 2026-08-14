@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DefenseBench: Can Frontier Models Patch Vulnerabilities? | Anshuman</title>
+  <link rel="icon" href="../../favicon.png">
+  <script src="../../sound.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      var t = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <style>
+    :root {
+      --bg:         #0d0d0d;
+      --text:       #e8e8e8;
+      --text-muted: #888;
+      --accent:     #C08552;
+      --border:     #222;
+      --surface:    #161616;
+    }
+
+    [data-theme="light"] {
+      --bg:         #f9f9f7;
+      --text:       #1a1a1a;
+      --text-muted: #666;
+      --accent:     #a06030;
+      --border:     #e0e0e0;
+      --surface:    #f0f0ee;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    .nav-tabs { display: flex; align-items: center; gap: 2px; }
+
+    .nav-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      font-weight: 400;
+      text-decoration: none;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+    .theme-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); padding: 6px;
+      display: flex; align-items: center;
+      border-radius: 6px; transition: color 0.2s;
+    }
+    .theme-btn:hover { color: var(--text); }
+
+    .article {
+      max-width: 660px;
+      margin: 0 auto;
+      padding: 72px 40px 120px;
+    }
+
+    .article-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .article-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 48px;
+    }
+
+    .article-body p {
+      font-size: 0.9375rem;
+      line-height: 1.85;
+      color: var(--text);
+      margin-bottom: 24px;
+      font-weight: 300;
+    }
+
+    .article-body h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 48px 0 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .article-body h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text);
+      margin: 32px 0 12px;
+    }
+
+    .article-body a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: opacity 0.2s;
+    }
+    .article-body a:hover { opacity: 0.7; }
+
+    .article-body strong { font-weight: 700; color: var(--text); }
+
+    .article-body em { font-style: italic; color: var(--text-muted); }
+
+    .article-body ol, .article-body ul {
+      margin: 0 0 24px 20px;
+    }
+    .article-body li {
+      font-size: 0.9375rem;
+      line-height: 1.85;
+      font-weight: 300;
+      margin-bottom: 6px;
+    }
+
+    .article-body hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    .article-body code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      background: var(--surface);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .article-body img {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin: 8px 0;
+      background: #fff;
+    }
+
+    .fig-caption {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 10px;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .article-footer {
+      margin-top: 80px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+    .article-footer a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+    .progress-bar {
+      position: fixed; top: 0; left: 0;
+      width: 0%; height: 2px;
+      background: var(--accent);
+      z-index: 200; transition: width 0.05s linear;
+    }
+
+    .toc {
+      position: fixed;
+      top: 148px;
+      left: max(16px, calc(50% - 330px - 24px - 152px));
+      width: 152px;
+      display: flex; flex-direction: column;
+    }
+    .toc-label {
+      font-size: 0.65rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: 10px; opacity: 0.5;
+    }
+    .toc-item {
+      display: block; font-size: 0.7rem; line-height: 1.5;
+      color: var(--text-muted); text-decoration: none;
+      padding: 4px 0 4px 10px;
+      border-left: 1px solid var(--border);
+      margin-bottom: 2px;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .toc-item:hover { color: var(--text); border-left-color: var(--text-muted); }
+    .toc-item.active { color: var(--accent); border-left-color: var(--accent); }
+
+    .progress-ring-wrap {
+      position: fixed;
+      top: 148px;
+      right: max(16px, calc(50% - 330px - 24px - 56px));
+    }
+    .progress-ring-bg { fill: none; stroke: var(--border); stroke-width: 3; }
+    .progress-ring-fill {
+      fill: none; stroke: var(--accent); stroke-width: 3;
+      stroke-linecap: round; stroke-dasharray: 150.8; stroke-dashoffset: 150.8;
+      transform: rotate(-90deg); transform-origin: 50% 50%;
+      transition: stroke-dashoffset 0.25s ease-out;
+    }
+    .progress-ring-pct {
+      font-size: 11px; fill: var(--text-muted);
+      font-family: Georgia, 'Times New Roman', serif; font-style: italic;
+    }
+
+    @media (max-width: 1080px) { .toc { display: none; } .progress-ring-wrap { display: none; } }
+    @media (max-width: 600px) {
+      nav { padding: 0 20px; }
+      .article { padding: 48px 20px 80px; }
+      .article-title { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-bar" id="progressBar"></div>
+
+  <nav>
+    <div class="nav-tabs">
+      <a href="../../" class="nav-tab">me</a>
+      <a href="../../build/" class="nav-tab">build</a>
+      <a href="../../write/" class="nav-tab active">write</a>
+      <a href="../../shelf/" class="nav-tab">shelf</a>
+      <a href="../../gallery/" class="nav-tab">gallery</a>
+    </div>
+    <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">
+      <svg id="icon-light" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg id="icon-dark" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </nav>
+
+  <aside class="toc" id="toc">
+    <span class="toc-label">On this page</span>
+  </aside>
+
+  <div class="progress-ring-wrap">
+    <svg width="60" height="60" viewBox="0 0 60 60">
+      <circle class="progress-ring-bg" cx="30" cy="30" r="24"/>
+      <circle class="progress-ring-fill" id="progressCircle" cx="30" cy="30" r="24"/>
+      <text class="progress-ring-pct" id="progressPct" x="30" y="30" text-anchor="middle" dominant-baseline="middle">0%</text>
+    </svg>
+  </div>
+
+  <main class="article">
+
+    <p class="article-meta">August 2026 &nbsp;·&nbsp; Security</p>
+    <h1 class="article-title">DefenseBench: Can Frontier Models Patch Vulnerabilities?</h1>
+
+    <div class="article-body">
+
+      <p>
+        This project started with designing one task. The goal: give an AI agent a vulnerability in a small app and see if it can find it and fix it. The work grew into two iterations, described below.
+      </p>
+
+      <p>
+        Most agentic security benchmarks test offense. They check if a model can find a vulnerability and exploit it. This project tests the other side of the job: can a model take a vulnerability and ship a fix that survives an attack attempt and keeps the rest of the app working.
+      </p>
+
+      <p>
+        Code, task definitions, the scoring pipeline, and agent trajectories are public at <a href="https://github.com/anshuman-dev/defensebench" target="_blank">the repo</a>.
+      </p>
+
+      <h2>Iteration 1: two small tasks</h2>
+
+      <p>
+        The first goal was to check if this idea works at all. Two small Flask apps were built, each with one injected vulnerability. Each task has a strict, automated scorer: an exploit check that must fail on a patched version, and a regression check that must keep passing throughout.
+      </p>
+
+      <p>
+        <strong>Task: invoice-bola.</strong> A small invoicing API. Two endpoints let any user read or edit any invoice by ID, without checking who owns it. A third, similar endpoint (the invoice list) filters correctly by owner. This was placed on purpose. It gives the code a plausible-looking safety signal next to the gap, so a quick read of the file can miss the two broken endpoints. The fix has one strict rule: a blocked request must return status 404, so it does not confirm the invoice exists.
+      </p>
+
+      <p>
+        <strong>Task: payment-race.</strong> A payment flow triggers a loyalty-point credit through an async callback. The callback checks if points were already given, then writes the new balance, with a gap between the two steps. Two payments sent close together can both pass the check before either one finishes writing, so the account gets credited twice. Solving this takes reasoning about timing and state.
+      </p>
+
+      <h3>Results</h3>
+
+      <p>
+        Five models were tested: Claude Opus 5, GPT-5.6 Sol, Gemini 3.6 Flash, Grok 4.5, and Kimi K3. Each got 3 attempts per task, shell access, and a plain prompt: "this app has a vulnerability, find and fix it."
+      </p>
+
+      <p>
+        Every valid run of payment-race scored full marks, across every model.
+      </p>
+
+      <p>
+        invoice-bola produced the only two model failures in this project:
+      </p>
+
+      <ul>
+        <li><strong>Kimi K3</strong> found the bug and patched both endpoints, but returned status 403 instead of 404. 403 confirms to an attacker that the invoice exists. 404 does not.</li>
+        <li><strong>Gemini 3.6 Flash</strong> missed the bug on one run. No ownership check was added.</li>
+      </ul>
+
+      <p>
+        Every other run, across both tasks, scored full marks.
+      </p>
+
+      <h3>What this showed</h3>
+
+      <p>
+        Two different bug types, both close to solved on the first pass. For a small, single-file task, current frontier models handle defensive security work well when they have tool access. So the obvious question became where difficulty would come from, if a single clever bug was not enough to find it.
+      </p>
+
+      <hr>
+
+      <h2>Iteration 2: a larger environment</h2>
+
+      <p>
+        The idea for this iteration: a single-file task lets a model apply a generic fix pattern, like "add an ownership check" or "add a lock," without needing to understand the system as a whole. To find difficulty, the environment needed to grow: more scale, more noise, more services, and no hints about where to look.
+      </p>
+
+      <p>
+        <strong>The environment.</strong> Three services run together as one small distributed system: <code>invoicing-api</code> (the user-facing service, holding invoices, users, loyalty, and cash refunds), <code>webhook-worker</code> (an internal service handling payment events), and <code>admin-reporting</code> (an internal service with its own store-credit ledger). Each service runs in its own container with its own code, and they talk to each other over authenticated internal calls.
+      </p>
+
+      <p>
+        <strong>Four vulnerabilities</strong>, spread across the three services so finding any one of them takes exploration:
+      </p>
+
+      <ol>
+        <li><strong>BOLA</strong>, same shape as Iteration 1, now living only in invoicing-api.</li>
+        <li><strong>The loyalty race</strong>, now a cross-service bug. The gap between checking and writing spans a network call between webhook-worker and invoicing-api. The network round trip itself is wide enough to trigger the race, so no added timing hook was needed here.</li>
+        <li><strong>A refund double-spend.</strong> A cash-refund path in invoicing-api and a store-credit path in admin-reporting each track their own channel's limit, but neither checks the other. Calling both lets a user get back more than they paid. The fix requires each service to check the other's total before approving a refund.</li>
+        <li><strong>An unrestricted delete.</strong> A delete endpoint has no permission check. The frontend shows a greyed-out delete button for non-admins, testing whether a model trusts what it sees on screen or checks the backend. The rule is admin-or-owner, chosen on purpose: a lazy "admin only" fix would block an owner from deleting their own invoice, so it fails the check too.</li>
+      </ol>
+
+      <p>
+        <strong>Five decoys</strong> sit next to these: a list endpoint scoped correctly, a loyalty redemption flow that handles concurrency correctly, a webhook handler that handles repeat events correctly, a query parameter that looks risky but is scoped properly, and a reporting endpoint that adds up both refund channels correctly for display, even though the two enforcement checks stay separate. Each one exists to make a model verify its assumptions instead of guessing.
+      </p>
+
+      <p>
+        <strong>Scoring</strong> here gives partial credit: the reward is the fraction of the four bugs fixed correctly, and touching a decoy neither helps nor hurts the score. Iteration 1 used a strict all-or-nothing scorer. This one is built to show partial progress, since a model that finds three of four bugs has shown something worth measuring on its own.
+      </p>
+
+      <h3>Building the ground truth found platform bugs</h3>
+
+      <p>
+        Getting a trustworthy score out of this environment took debugging work, separate from the model results themselves. Five platform issues turned up and got fixed, each one confirmed by reading logs or source code:
+      </p>
+
+      <ul>
+        <li>A file path collision emptied one service's collected code without any error message.</li>
+        <li>The orchestration platform set the agent's startup command on its own, overriding a custom one. Fixed by switching to an entrypoint script that hands off control properly.</li>
+        <li>The verifier's own container was missing <code>curl</code>. Every attempt to tune a timeout in the test script touched dead code, because the timeout that mattered sat in a separate part of the test file that had not been touched.</li>
+        <li>A network setting meant to block internet access also blocked calls between the three services on the cloud sandbox provider used here. Finding this took reading the provider's configuration file.</li>
+        <li>The middle-ground fix (block outside access, allow internal calls) turned out to be unsupported by that provider for multi-container tasks. The team settled on open network access for this task alone, and wrote that trade-off down in the task file.</li>
+      </ul>
+
+      <p>
+        A separate finding came from testing the race condition on the cloud sandbox. Four runs in a row failed to trigger the exploit on unpatched code, a result that looked too clean to trust. The cause was a timing issue in how the two racing requests were sent, unrelated to the bug or the fix. Once fixed, the exploit triggered on repeated checks, on both the local setup and the cloud environment.
+      </p>
+
+      <h3>Results</h3>
+
+      <p>
+        Same five models, same three attempts each, run against the full environment.
+      </p>
+
+      <p>
+        Every valid run, across all five models, scored full marks. All four bugs were found and fixed correctly, every decoy was left alone, and this happened under a scorer built to show partial credit if it existed. Billing data was only saved for a handful of trials, but even that small set showed a wide spread in cost for the same outcome, worth a closer look with a full sample.
+      </p>
+
+      <hr>
+
+      <h2>What this shows</h2>
+
+      <p>
+        Put together, the two iterations form a difficulty ladder: one bug in one file, then four bugs spread across a three-service system with noise, decoys, and no hints. The difficulty went up. The results stayed the same.
+      </p>
+
+      <p>
+        The only failures in this project came from the easiest task, on the simplest bug, from a wrong status code and one missed check. The finding: for defensive security-patching tasks with agentic tool access, current frontier models already handle this work well. The gap that showed up sits closer to model tier than to task difficulty, at least for the vulnerability types tested here.
+      </p>
+
+      <img src="difficulty-progression-diagram.svg" alt="Difficulty progression across both iterations">
+      <p class="fig-caption">Difficulty progression across both iterations.</p>
+
+      <img src="architecture-diagram.svg" alt="Architecture of the three-service environment">
+      <p class="fig-caption">Architecture of the three-service environment.</p>
+
+      <h3>Limits worth stating</h3>
+
+      <ul>
+        <li>This project covers six task-model combinations. It is a focused result, not a broad survey.</li>
+        <li>Every bug here was designed for this project. None are historical CVEs. This removes any chance a model had seen the fix before, but it also means these results speak only to designed bugs, not to the kind of unseen vulnerability a security researcher might face in practice.</li>
+        <li>An earlier candidate task, a second refund bug tested on its own before this environment was built, got dropped at a cheap check stage. It shared the same underlying shape as the payment-race bug, just described in different words. This was a useful reminder to design for novelty on purpose, since a bug that looks new on the surface can still carry the same pattern underneath.</li>
+        <li>Full agent trajectories exist for a portion of the runs at publication time. The rest are being added to the public repository as they become available.</li>
+      </ul>
+
+      <hr>
+
+      <h2>What's next</h2>
+
+      <p>
+        So the obvious question is whether scaling the environment failed to stump these models because the models are strong at this kind of work, or because web-app security bugs like the ones tested here are among the most documented topics that exist. BOLA, TOCTOU, and auth checks all have thousands of tutorials and writeups behind them. A model does not need to reason from scratch to recognize the shape of the fix.
+      </p>
+
+      <p>
+        The next step is to test a domain with far less of that coverage. Multiplayer game servers are a good candidate: tick-based state sync, client-authority trust boundaries, and lag-compensation logic are documented problems inside specialist game-development communities, with much less coverage than web CRUD security. If the models still solve tasks in that domain without much trouble, that says something about model capability. If they do not, that says something about how much of this project's earlier result came from topic familiarity instead.
+      </p>
+
+      <p><em>Code, task definitions, the scoring pipeline, and available agent trajectories are public at <a href="https://github.com/anshuman-dev/defensebench" target="_blank">the repo</a>.</em></p>
+
+    </div>
+
+    <div class="article-footer">
+      <a href="../../write/">← back to writing</a>
+    </div>
+
+  </main>
+
+  <script>
+    var toggle = document.getElementById('themeToggle');
+    var iconLight = document.getElementById('icon-light');
+    var iconDark = document.getElementById('icon-dark');
+
+    function applyTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      localStorage.setItem('theme', t);
+      if (t === 'dark') { iconLight.style.display = 'none'; iconDark.style.display = 'block'; }
+      else { iconLight.style.display = 'block'; iconDark.style.display = 'none'; }
+    }
+
+    applyTheme(localStorage.getItem('theme') || 'dark');
+    toggle.addEventListener('click', function() {
+      applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    (function() {
+      var toc = document.getElementById('toc');
+      var headings = document.querySelectorAll('.article-body h2');
+      headings.forEach(function(h, i) {
+        if (!h.id) h.id = 'section-' + i;
+        var a = document.createElement('a');
+        a.href = '#' + h.id;
+        a.className = 'toc-item';
+        a.textContent = h.textContent;
+        toc.appendChild(a);
+      });
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            document.querySelectorAll('.toc-item').forEach(function(a) { a.classList.remove('active'); });
+            var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+            if (active) active.classList.add('active');
+          }
+        });
+      }, { rootMargin: '-10% 0px -80% 0px' });
+      headings.forEach(function(h) { observer.observe(h); });
+    })();
+
+    (function() {
+      var bar = document.getElementById('progressBar');
+      var pct = document.getElementById('progressPct');
+      var circle = document.getElementById('progressCircle');
+      var circumference = 150.8;
+      window.addEventListener('scroll', function() {
+        var scrolled = window.scrollY;
+        var total = document.documentElement.scrollHeight - window.innerHeight;
+        var progress = total > 0 ? Math.round((scrolled / total) * 100) : 0;
+        bar.style.width = progress + '%';
+        pct.textContent = progress + '%';
+        circle.style.strokeDashoffset = circumference * (1 - progress / 100);
+      }, { passive: true });
+    })();
+  </script>
+
+</body>
+</html>
