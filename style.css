@@ -544,6 +544,113 @@ a:hover {
 
 .gallery-lightbox-close:hover { color: rgba(255,255,255,0.9); }
 
+/* grid variant */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+  margin-top: 32px;
+}
+
+.gallery-hero + .gallery-grid {
+  margin-top: 40px;
+}
+
+.gallery-grid figure {
+  margin: 0;
+  padding: 0;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  cursor: zoom-in;
+  aspect-ratio: 1 / 1;
+}
+
+.gallery-grid img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.92) saturate(0.85) contrast(1.05);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), filter 0.3s ease;
+}
+
+.gallery-grid figure:hover img {
+  transform: scale(1.06);
+  filter: brightness(1) saturate(0.95) contrast(1.02);
+}
+
+/* horizontal scroll / masonry variant */
+.gallery-scroll {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 240px;
+  grid-template-rows: repeat(2, 200px);
+  gap: 8px;
+  overflow-x: auto;
+  width: 100vw;
+  margin: 32px calc(50% - 50vw) 0;
+  padding: 0 40px 16px;
+  scroll-snap-type: x proximity;
+}
+
+.gallery-scroll::-webkit-scrollbar { height: 6px; }
+.gallery-scroll::-webkit-scrollbar-track { background: transparent; }
+.gallery-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.gallery-scroll figure {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  border: none;
+  overflow: hidden;
+  cursor: zoom-in;
+  scroll-snap-align: start;
+}
+
+.gallery-scroll figure.tall { grid-row: span 2; }
+
+.gallery-scroll img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.92) saturate(0.85) contrast(1.05);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), filter 0.3s ease;
+}
+
+.gallery-scroll figure:hover img {
+  transform: scale(1.05);
+  filter: brightness(1) saturate(0.95) contrast(1.02);
+}
+
+.gallery-scroll .expand-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  pointer-events: none;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.gallery-scroll figure:hover .expand-btn { opacity: 1; }
+
+@media (max-width: 600px) {
+  .gallery-scroll { margin: 32px -20px 0; padding: 0 20px 16px; }
+}
+
 /* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 600px) {
   nav { padding: 0 20px; }

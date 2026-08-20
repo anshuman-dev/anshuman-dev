@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anshuman | Gallery</title>
-  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../style.css?v=2">
   <link rel="icon" href="../favicon.png">
   <script src="../sound.js" defer></script>
   <script>
@@ -43,9 +43,27 @@
       <p>Photos, moments, things worth keeping.</p>
     </div>
 
-    <figure class="gallery-hero" onclick="openLightbox('../static/cowork-night.jpg')">
-      <img src="../static/cowork-night.jpg" alt="Late night at the coworking space">
-    </figure>
+    <div class="gallery-scroll">
+      <figure onclick="openLightbox('../static/cowork-night.jpg')">
+        <img src="../static/cowork-night.jpg" alt="Late night at the coworking space">
+        <span class="expand-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+        </span>
+      </figure>
+
+      <figure onclick="openLightbox('../static/solder-bench.jpg')">
+        <img src="../static/solder-bench.jpg" alt="Soldering a drone flight controller at the workbench">
+        <span class="expand-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+        </span>
+      </figure>
+    </div>
 
     <div class="gallery-lightbox" id="lightbox" onclick="closeLightbox()">
       <button class="gallery-lightbox-close" onclick="closeLightbox()" aria-label="Close">&times;</button>
