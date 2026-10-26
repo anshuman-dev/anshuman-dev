@@ -220,6 +220,27 @@ a:hover {
   line-height: 1.6;
 }
 
+.exp-earlier {
+  margin-top: 24px;
+}
+
+.exp-earlier summary {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  list-style: none;
+  width: fit-content;
+}
+
+.exp-earlier summary::-webkit-details-marker { display: none; }
+.exp-earlier summary::after { content: ' ↓'; }
+.exp-earlier[open] summary::after { content: ' ↑'; }
+.exp-earlier summary:hover { color: var(--text); }
+
+.exp-earlier .exp-list {
+  margin-top: 20px;
+}
+
 /* Social links */
 .social-row {
   display: flex;
